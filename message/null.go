@@ -63,10 +63,10 @@ func (t *NullTransaction) GetDuration() time.Duration {
 func (t *NullTransaction) SetDuration(duration time.Duration) {
 }
 
-func (t *NullTransaction) NewEvent(mtype, mname string) Messager {
+func (t *NullTransaction) NewEvent(mtype, name string) Messager {
 	return nullMessage
 }
 
-func (t *NullTransaction) LogEvent(mtype, mname string, args ...string) {
+func (t *NullTransaction) LogEvent(mtype, name string, args ...string) {
 	return
 }
