@@ -15,8 +15,8 @@ type Transactor interface {
 	TransactionGetter
 	SetDuration(duration time.Duration)
 	SetDurationStart(time time.Time)
-	NewEvent(mtype, mname string) Messager
-	LogEvent(mtype, mname string, args ...string)
+	NewEvent(mtype, name string) Messager
+	LogEvent(mtype, name string, args ...string)
 }
 
 type Transaction struct {
@@ -66,14 +66,14 @@ func (t *Transaction) SetDurationStart(time time.Time) {
 	t.durationStart = time
 }
 
-func (t *Transaction) NewEvent(mtype, mname string) Messager {
-	var e = NewEvent(mtype, mname, nil)
+func (t *Transaction) NewEvent(mtype, name string) Messager {
+	var e = NewEvent(mtype, name, nil)
 	t.AddChild(e)
 	return e
 }
 
-func (t *Transaction) LogEvent(mtype, mname string, args ...string) {
-	var e = t.NewEvent(mtype, mname)
+func (t *Transaction) LogEvent(mtype, name string, args ...string) {
+	var e = t.NewEvent(mtype, name)
 	if len(args) > 0 {
 		e.SetStatus(args[0])
 	}
@@ -83,10 +83,10 @@ func (t *Transaction) LogEvent(mtype, mname string, args ...string) {
 	e.Complete()
 }
 
-func (t *Transaction) AddChild(messager Messager) {
+func (t *Transaction) AddChild(m Messager) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	t.children = append(t.children, messager)
+	t.children = append(t.children, m)
 }
 
 func NewTransaction(mtype, name string, flush Flush) *Transaction {
