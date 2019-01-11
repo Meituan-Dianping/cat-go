@@ -1,6 +1,7 @@
 package cat
 
 import (
+	"fmt"
 	"time"
 
 	"../message"
@@ -62,14 +63,16 @@ func (t *catMessageTree) LogErrorWithCategory(err error, category string) {
 }
 
 func (t *catMessageTree) LogMetricForCount(name string, args ...int) {
+	var count int
 	if len(args) == 0 {
-		// TODO
+		count = 1
 	} else {
-		// TODO
+		count = args[0]
 	}
+	fmt.Println(count)
 }
 
-func (t *catMessageTree) LogMetricForDuration(name string, duration int64) {
+func (t *catMessageTree) LogMetricForDuration(name string, durationInMillis int64) {
 	// TODO
 }
 

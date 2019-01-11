@@ -1,6 +1,7 @@
 package message
 
 import (
+	"sync"
 	"time"
 )
 
@@ -24,6 +25,8 @@ type Transaction struct {
 	children []Messager
 
 	isCompleted bool
+
+	mu sync.Mutex
 
 	duration time.Duration
 	durationStart time.Time
@@ -63,11 +66,10 @@ func (t *Transaction) SetDurationStart(time time.Time) {
 	t.durationStart = time
 }
 
-
 func (t *Transaction) NewEvent(mtype, mname string) Messager {
-	event := NewEvent(mtype, mname, nil)
-	t.children = append(t.children, event)
-	return event
+	var e = NewEvent(mtype, mname, nil)
+	t.AddChild(e)
+	return e
 }
 
 func (t *Transaction) LogEvent(mtype, mname string, args ...string) {
@@ -82,14 +84,18 @@ func (t *Transaction) LogEvent(mtype, mname string, args ...string) {
 }
 
 func (t *Transaction) AddChild(messager Messager) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.children = append(t.children, messager)
 }
 
 func NewTransaction(mtype, name string, flush Flush) *Transaction {
 	return &Transaction{
-		Message:     NewMessage(mtype, name, flush),
-		children:    make([]Messager, 0),
-		isCompleted: false,
-		duration: 0,
+		Message:       NewMessage(mtype, name, flush),
+		children:      make([]Messager, 0),
+		isCompleted:   false,
+		mu:            sync.Mutex{},
+		duration:      0,
+		durationStart: time.Time{},
 	}
 }
