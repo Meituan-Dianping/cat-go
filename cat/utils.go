@@ -2,6 +2,7 @@ package cat
 
 import (
 	"net"
+	"time"
 )
 
 func getLocalhostIp() (ip string, err error) {
@@ -21,4 +22,12 @@ func getLocalhostIp() (ip string, err error) {
 		}
 	}
 	return
+}
+
+func duration2Millis(duration time.Duration) int64 {
+	return duration.Nanoseconds() / time.Millisecond.Nanoseconds()
+}
+
+func duration2Micros(duration time.Duration) int64 {
+	return duration.Nanoseconds() / time.Microsecond.Nanoseconds()
 }

@@ -12,7 +12,7 @@ var cat = gocat.Instance()
 const TTYPE = "foo"
 
 func init() {
-	gocat.Init("gocat")
+	gocat.Init("gocat.v2")
 }
 
 // send transaction

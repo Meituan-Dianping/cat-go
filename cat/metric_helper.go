@@ -22,9 +22,9 @@ func (h *MetricHelper) AddTag(key, val string) *MetricHelper {
 }
 
 func (h *MetricHelper) Count(count int) {
-	// TODO check if int is over than i64
+	aggregator.metric.AddCount(h.name, count)
 }
 
 func (h *MetricHelper) Duration(duration time.Duration) {
-	// TODO check if int is over than i64
+	aggregator.metric.AddDuration(h.name, duration)
 }
