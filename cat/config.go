@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 )
@@ -130,15 +131,23 @@ func (config *Config) Init(domain string) (err error) {
 
 	// TODO load env.
 
-	if config.ip, err = getLocalhostIp(); err != nil {
-		logger.Warning("Error while getting local ip, using default ip: %s", config.ip)
-		return
+	var ip net.IP
+	if ip, err = getLocalhostIp(); err != nil {
+		config.ip = defaultIp
+		config.ipHex = defaultIpHex
+		logger.Warning("Error while getting local ip, using default ip: %s", defaultIp)
 	} else {
-		// TODO ipHex
+		config.ip = ip2String(ip)
+		config.ipHex = ip2HexString(ip)
 		logger.Info("Local ip has been configured to %s", config.ip)
 	}
 
-	// TODO hostname
+	if config.hostname, err = os.Hostname(); err != nil {
+		config.hostname = defaultHostname
+		logger.Warning("Error while getting hostname, using default hostname: %s", defaultHostname)
+	} else {
+		logger.Info("Hostname has been configured to %s", config.hostname)
+	}
 
 	var data []byte
 	if data, err = loadConfig(); err != nil {

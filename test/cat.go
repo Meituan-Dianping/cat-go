@@ -13,6 +13,7 @@ const TestType = "foo"
 var wg = sync.WaitGroup{}
 
 func init() {
+	cat.DebugOn()
 	cat.Init("gocat.v2")
 }
 
@@ -74,8 +75,6 @@ func start(f func()) {
 }
 
 func main() {
-	cat.DebugOn()
-
 	start(case1)
 	start(case2)
 	start(case3)
