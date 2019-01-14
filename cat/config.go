@@ -37,27 +37,15 @@ type XMLConfigServer struct {
 	Port int    `xml:"port,attr"`
 }
 
-const (
-	DefaultAppkey   = "cat"
-	DefaultHostname = "GoUnknownHost"
-	DefaultEnv = "dev"
-
-	DefaultIp    = "127.0.0.1"
-	DefaultIphex = "7f000001"
-
-	DefaultServer  = "cat.sankuai.com"
-	DefaultXmlFile = "/data/appdatas/cat/client.xml"
-)
-
 var config = Config{
-	domain:   DefaultAppkey,
+	domain:   DefaultAppKey,
 	hostname: DefaultHostname,
-	env: DefaultEnv,
+	env:      DefaultEnv,
 
 	ip:    DefaultIp,
-	ipHex: DefaultIphex,
+	ipHex: DefaultIpHex,
 
-	httpServerPort: 8080,
+	httpServerPort:      8080,
 	httpServerAddresses: []serverAddress{},
 
 	serverAddress: []serverAddress{},

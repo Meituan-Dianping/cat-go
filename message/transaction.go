@@ -28,7 +28,7 @@ type Transaction struct {
 
 	mu sync.Mutex
 
-	duration time.Duration
+	duration      time.Duration
 	durationStart time.Time
 }
 

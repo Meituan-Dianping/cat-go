@@ -9,7 +9,6 @@ import (
 type catMessageTree struct {
 }
 
-
 func Instance() *catMessageTree {
 	return &catMessageTree{}
 }
@@ -21,10 +20,10 @@ func (t *catMessageTree) NewTransaction(mtype, name string) message.Transactor {
 func (t *catMessageTree) NewCompletedTransactionWithDuration(mtype, name string, duration time.Duration) {
 	var trans = t.NewTransaction(mtype, name)
 	trans.SetDuration(duration)
-	if duration > 0 && duration < 60 * time.Millisecond {
+	if duration > 0 && duration < 60*time.Millisecond {
 		trans.SetTime(time.Now().Add(-duration))
 	}
-	trans.SetStatus(message.CAT_SUCCESS)
+	trans.SetStatus(message.CatSuccess)
 	trans.Complete()
 }
 
@@ -56,7 +55,7 @@ func (t *catMessageTree) LogError(err error, args ...string) {
 func (t *catMessageTree) LogErrorWithCategory(err error, category string) {
 	var e = t.NewEvent("Error", category)
 	var buf = newStacktrace(2, err)
-	e.SetStatus(message.CAT_ERROR)
+	e.SetStatus(message.CatError)
 	e.SetData(buf.String())
 	e.Complete()
 }

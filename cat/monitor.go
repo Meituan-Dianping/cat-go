@@ -45,8 +45,8 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 	}
 
 	type Extension struct {
-		Id      string `xml:"id,attr"`
-		Desc    string `xml:"description"`
+		Id      string            `xml:"id,attr"`
+		Desc    string            `xml:"description"`
 		Details []ExtensionDetail `xml:"extensionDetail"`
 	}
 
@@ -56,13 +56,13 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 	}
 
 	type Status struct {
-		XMLName     xml.Name `xml:"status"`
-		Extensions []Extension `xml:"extension"`
+		XMLName     xml.Name     `xml:"status"`
+		Extensions  []Extension  `xml:"extension"`
 		CustomInfos []CustomInfo `xml:"customInfo"`
 	}
 
 	status := Status{
-		Extensions: make([]Extension, 0, len(m.collectors)),
+		Extensions:  make([]Extension, 0, len(m.collectors)),
 		CustomInfos: make([]CustomInfo, 0, 3),
 	}
 
@@ -84,7 +84,7 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 	}
 
 	// add custom information.
-	status.CustomInfos = append(status.CustomInfos, CustomInfo{"gocat-version", GOCAT_VERSION})
+	status.CustomInfos = append(status.CustomInfos, CustomInfo{"gocat-version", GoCatVersion})
 	status.CustomInfos = append(status.CustomInfos, CustomInfo{"go-version", runtime.Version()})
 
 	buf := bytes.NewBuffer([]byte{})
@@ -100,10 +100,10 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 }
 
 func (m *catMonitor) collectAndSend() {
-	var trans = message.NewTransaction(CAT_SYSTEM, "Status", manager.flush)
+	var trans = message.NewTransaction(System, "Status", manager.flush)
 	defer trans.Complete()
 
-	trans.LogEvent("Cat_golang_Client_Version", GOCAT_VERSION)
+	trans.LogEvent("Cat_golang_Client_Version", GoCatVersion)
 
 	// NOTE type & name is useless while sending a heartbeat
 	heartbeat := message.NewHeartbeat("Heartbeat", config.ip, nil)
@@ -118,7 +118,7 @@ var monitor = catMonitor{
 	collectors: []Collector{
 		&MemStatsCollector{},
 		&CpuInfoCollector{
-			lastTime: &cpu.TimesStat{},
+			lastTime:    &cpu.TimesStat{},
 			lastCPUTime: 0,
 		},
 	},

@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	CAT_SUCCESS = "0"
-	CAT_ERROR   = "-1"
+	CatSuccess = "0"
+	CatError   = "-1"
 )
 
 type Flush func(m Messager)
@@ -45,7 +45,7 @@ func NewMessage(mtype, name string, flush Flush) Message {
 	return Message{
 		Type:      mtype,
 		Name:      name,
-		Status:    CAT_SUCCESS,
+		Status:    CatSuccess,
 		timestamp: time.Now(),
 		data:      new(bytes.Buffer),
 		flush:     flush,
@@ -105,5 +105,5 @@ func (m *Message) SetStatus(status string) {
 }
 
 func (m *Message) SetSuccessStatus() {
-	m.Status = CAT_SUCCESS
+	m.Status = CatSuccess
 }

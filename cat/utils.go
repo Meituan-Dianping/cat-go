@@ -6,7 +6,7 @@ import (
 )
 
 func getLocalhostIp() (ip string, err error) {
-	ip = DEFAULT_IP
+	ip = DefaultIp
 
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {

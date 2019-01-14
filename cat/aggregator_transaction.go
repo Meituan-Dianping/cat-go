@@ -27,7 +27,7 @@ func (p *transactionAggregator) send(dataMap map[string]*transactionData) {
 		return
 	}
 
-	t := message.NewTransaction(CAT_SYSTEM, TRANSACTION_AGGREGATOR, aggregator.flush)
+	t := message.NewTransaction(System, TransactionAggregator, aggregator.flush)
 	defer t.Complete()
 
 	buf := newBuf()
@@ -77,7 +77,7 @@ func (p *transactionAggregator) getOrDefault(transaction *message.Transaction) *
 }
 
 func (p *transactionAggregator) BackGround() {
-	var ticker = time.NewTicker(time.Second)
+	var ticker = time.NewTicker(TransactionAggregatorInterval)
 	for {
 		select {
 		case trans := <-p.ch:
@@ -118,7 +118,7 @@ func (data *transactionData) add(transaction *message.Transaction) {
 
 func newTransactionAggregator() *transactionAggregator {
 	return &transactionAggregator{
-		ch:      make(chan *message.Transaction, TRANSACTION_AGGREGATOR_CHANNEL_CAPACITY),
+		ch:      make(chan *message.Transaction, TransactionAggregatorChannelCapacity),
 		dataMap: make(map[string]*transactionData),
 	}
 }
