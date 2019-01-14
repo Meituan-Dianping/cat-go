@@ -71,7 +71,7 @@ func (t *catMessageTree) LogMetricForCount(name string, args ...int) {
 	_ = count
 }
 
-func (t *catMessageTree) LogMetricForDuration(name string, durationInMillis int64) {
+func (t *catMessageTree) LogMetricForDuration(name string, duration time.Duration) {
 	// TODO
 }
 

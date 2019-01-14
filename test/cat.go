@@ -53,7 +53,7 @@ func case4() {
 func case5() {
 	cat.LogMetricForCount("metric-1")
 	cat.LogMetricForCount("metric-2", 3)
-	cat.LogMetricForDuration("metric-3", 150*time.Millisecond.Nanoseconds())
+	cat.LogMetricForDuration("metric-3", 150*time.Millisecond)
 }
 
 func run(f func()) {
