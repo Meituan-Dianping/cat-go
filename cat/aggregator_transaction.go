@@ -101,7 +101,7 @@ func (p *transactionAggregator) Put(t *message.Transaction) {
 func (data *transactionData) add(transaction *message.Transaction) {
 	data.count++
 
-	if transaction.GetStatus() != CAT_SUCCESS {
+	if transaction.GetStatus() != SUCCESS {
 		data.fail++
 	}
 

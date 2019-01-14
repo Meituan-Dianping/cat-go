@@ -24,7 +24,7 @@ func (p *catMessageManager) sendEvent(t *message.Event) {
 func (p *catMessageManager) flush(m message.Messager) {
 	switch m := m.(type) {
 	case *message.Transaction:
-		if m.Status != CAT_SUCCESS {
+		if m.Status != SUCCESS {
 			sender.handleTransaction(m)
 		} else if p.isSample() {
 			sender.handleTransaction(m)
@@ -32,7 +32,7 @@ func (p *catMessageManager) flush(m message.Messager) {
 			aggregator.transaction.Put(m)
 		}
 	case *message.Event:
-		if m.Status != CAT_SUCCESS {
+		if m.Status != SUCCESS {
 			sender.handleEvent(m)
 		} else {
 			aggregator.event.Put(m)

@@ -51,7 +51,7 @@ func (sender *catMessageSender) send(m message.Messager) (err error) {
 }
 
 func (sender *catMessageSender) handleTransaction(trans *message.Transaction) {
-	if trans.GetStatus() != CAT_SUCCESS {
+	if trans.GetStatus() != SUCCESS {
 		select {
 		case sender.high <- trans:
 		default:

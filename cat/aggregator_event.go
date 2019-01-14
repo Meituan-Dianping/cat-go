@@ -79,7 +79,7 @@ func (p *eventAggregator) Put(event *message.Event) {
 func (data *eventData) add(event *message.Event) {
 	data.count++
 
-	if event.GetStatus() != CAT_SUCCESS {
+	if event.GetStatus() != SUCCESS {
 		data.fail++
 	}
 }
