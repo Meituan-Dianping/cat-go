@@ -43,10 +43,10 @@ func (m *NullMessage) SetTime(time time.Time) {
 func (m *NullMessage) SetTimestamp(timestampMs int64) {
 }
 
-func (m *NullMessage) AddData(k, v string) {
+func (m *NullMessage) AddData(k string, v ...string) {
 }
 
-func (m *NullMessage) AddDataPair(data string) {
+func (m *NullMessage) SetData(v string) {
 }
 
 func (m *NullMessage) SetStatus(status string) {

@@ -39,7 +39,7 @@ func (t *catMessageTree) LogEvent(mtype, name string, args ...string) {
 		e.SetStatus(args[0])
 	}
 	if len(args) > 1 {
-		e.AddDataPair(args[1])
+		e.SetData(args[1])
 	}
 	e.Complete()
 }
@@ -58,7 +58,7 @@ func (t *catMessageTree) LogErrorWithCategory(err error, category string) {
 	var e = t.NewEvent("Error", category)
 	var buf = newStacktrace(2, err)
 	e.SetStatus(message.CAT_ERROR)
-	e.AddDataPair(buf.String())
+	e.SetData(buf.String())
 	e.Complete()
 }
 
