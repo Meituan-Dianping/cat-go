@@ -100,7 +100,7 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 }
 
 func (m *catMonitor) collectAndSend() {
-	var trans = message.NewTransaction(System, "Status", manager.flush)
+	var trans = message.NewTransaction(typeSystem, "Status", manager.flush)
 	defer trans.Complete()
 
 	trans.LogEvent("Cat_golang_Client_Version", GoCatVersion)

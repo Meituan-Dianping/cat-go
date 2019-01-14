@@ -14,7 +14,7 @@ const (
 	FAIL    = "fail"
 )
 
-const (
+const ( // Declared default values.
 	DefaultAppKey   = "cat"
 	DefaultHostname = "GoUnknownHost"
 	DefaultEnv      = "dev"
@@ -27,29 +27,35 @@ const (
 	DefaultLogDir  = "/data/applogs/cat"
 )
 
-const (
-	HighPriorityQueueSize   = 1000
-	NormalPriorityQueueSize = 5000
-
-	TransactionAggregatorChannelCapacity = 1000
-	EventAggregatorChannelCapacity       = 1000
-	MetricAggregatorChannelCapacity      = 1000
-
-	TransactionAggregatorInterval = time.Second * 3
-	EventAggregatorInterval       = time.Second * 3
-	MetricAggregatorInterval      = time.Second * 3
+const ( // Declared properties given by the router server.
+	propertySample  = "sample"
+	propertyRouters = "routers"
+	propertyBlock   = "block"
 )
 
 const (
-	System = "System"
+	highPriorityQueueSize   = 1000
+	normalPriorityQueueSize = 5000
 
-	TransactionAggregator = "TransactionAggregator"
-	EventAggregator       = "EventAggregator"
-	MetricAggregator      = "MetricAggregator"
+	transactionAggregatorChannelCapacity = 1000
+	eventAggregatorChannelCapacity       = 1000
+	metricAggregatorChannelCapacity      = 1000
+
+	transactionAggregatorInterval = time.Second * 3
+	eventAggregatorInterval       = time.Second * 3
+	metricAggregatorInterval      = time.Second * 3
 )
 
-type Signals chan int
+const ( // Declared a series of reserved type and names.
+	typeSystem = "typeSystem"
+
+	nameTransactionAggregator = "nameTransactionAggregator"
+	nameEventAggregator       = "nameEventAggregator"
+	nameMetricAggregator      = "nameMetricAggregator"
+)
+
+type signals chan int
 
 const (
-	SignalResetConnection = iota
+	signalResetConnection = iota
 )

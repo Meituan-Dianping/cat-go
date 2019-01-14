@@ -27,7 +27,7 @@ type RouterConfig struct {
 	sample  float64
 	routers []serverAddress
 	current *serverAddress
-	signals Signals
+	signals signals
 }
 
 var router = RouterConfig{
@@ -73,7 +73,7 @@ func (c *RouterConfig) updateRouterConfig() {
 
 func (c *RouterConfig) handle(signal int) {
 	switch signal {
-	case SignalResetConnection:
+	case signalResetConnection:
 		logger.Warning("Connection has been reset, reconnecting.")
 		c.current = nil
 		c.updateRouterConfig()
@@ -108,14 +108,14 @@ func (c *RouterConfig) parse(reader io.ReadCloser) {
 
 	for _, property := range t.Properties {
 		switch property.Id {
-		case "sample":
+		case propertySample:
 			c.sample, err = strconv.ParseFloat(property.Value, 32)
 			if err != nil {
 				logger.Warning("Sample should be a valid float, %s given", property.Value)
 			} else {
 				logger.Info("Sample rate has been set to %f%%", c.sample*100)
 			}
-		case "routers":
+		case propertyRouters:
 			c.updateRouters(property.Value)
 		}
 	}

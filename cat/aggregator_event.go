@@ -23,7 +23,7 @@ func (p *eventAggregator) send(dataMap map[string]*eventData) {
 		return
 	}
 
-	t := message.NewTransaction(System, EventAggregator, aggregator.flush)
+	t := message.NewTransaction(typeSystem, nameEventAggregator, aggregator.flush)
 	defer t.Complete()
 
 	buf := newBuf()
@@ -55,7 +55,7 @@ func (p *eventAggregator) getOrDefault(event *message.Event) *eventData {
 }
 
 func (p *eventAggregator) BackGround() {
-	var ticker = time.NewTicker(EventAggregatorInterval)
+	var ticker = time.NewTicker(eventAggregatorInterval)
 	for {
 		select {
 		case event := <-p.ch:
@@ -86,7 +86,7 @@ func (data *eventData) add(event *message.Event) {
 
 func newEventAggregator() *eventAggregator {
 	return &eventAggregator{
-		ch:      make(chan *message.Event, EventAggregatorChannelCapacity),
+		ch:      make(chan *message.Event, eventAggregatorChannelCapacity),
 		dataMap: make(map[string]*eventData),
 	}
 }
