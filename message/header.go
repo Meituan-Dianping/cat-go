@@ -1,11 +1,11 @@
 package message
 
 type Header struct {
-	Domain        string
-	Hostname      string
-	Ip            string
+	Domain   string
+	Hostname string
+	Ip       string
 
-	MessageId string
+	MessageId       string
 	ParentMessageId string
-	RootMessageId string
+	RootMessageId   string
 }

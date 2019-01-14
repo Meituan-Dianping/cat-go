@@ -18,17 +18,17 @@ type eventAggregator struct {
 	dataMap map[string]*eventData
 }
 
-func (p *eventAggregator) send(datas map[string]*eventData) {
-	if len(datas) == 0 {
+func (p *eventAggregator) send(dataMap map[string]*eventData) {
+	if len(dataMap) == 0 {
 		return
 	}
 
-	t := message.NewTransaction(CAT_SYSTEM, EVENT_AGGREGATOR, aggregator.flush)
+	t := message.NewTransaction(System, EventAggregator, aggregator.flush)
 	defer t.Complete()
 
 	buf := newBuf()
 
-	for _, data := range datas {
+	for _, data := range dataMap {
 		event := t.NewEvent(data.mtype, data.name)
 		buf.WriteRune(batchFlag)
 		buf.WriteInt(data.count)
@@ -38,7 +38,7 @@ func (p *eventAggregator) send(datas map[string]*eventData) {
 	}
 }
 
-func (p *eventAggregator) getOrDefault(event *message.Event) *eventData{
+func (p *eventAggregator) getOrDefault(event *message.Event) *eventData {
 	key := fmt.Sprintf("%s,%s", event.Type, event.Name)
 
 	if data, ok := p.dataMap[key]; ok {
@@ -55,10 +55,10 @@ func (p *eventAggregator) getOrDefault(event *message.Event) *eventData{
 }
 
 func (p *eventAggregator) BackGround() {
-	var ticker = time.NewTicker(time.Second)
+	var ticker = time.NewTicker(EventAggregatorInterval)
 	for {
 		select {
-		case event := <- p.ch:
+		case event := <-p.ch:
 			p.getOrDefault(event).add(event)
 		case <-ticker.C:
 			dataMap := p.dataMap
@@ -86,7 +86,7 @@ func (data *eventData) add(event *message.Event) {
 
 func newEventAggregator() *eventAggregator {
 	return &eventAggregator{
-		ch:      make(chan *message.Event, EVENT_AGGREGATOR_CHANNEL_CAPACITY),
+		ch:      make(chan *message.Event, EventAggregatorChannelCapacity),
 		dataMap: make(map[string]*eventData),
 	}
 }

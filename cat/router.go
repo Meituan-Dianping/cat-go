@@ -31,7 +31,7 @@ type RouterConfig struct {
 }
 
 var router = RouterConfig{
-	sample: 1.0,
+	sample:  1.0,
 	routers: make([]serverAddress, 0),
 }
 
@@ -73,7 +73,7 @@ func (c *RouterConfig) updateRouterConfig() {
 
 func (c *RouterConfig) handle(signal int) {
 	switch signal {
-	case S_RESET_CONNECTION:
+	case SignalResetConnection:
 		logger.Warning("Connection has been reset, reconnecting.")
 		c.current = nil
 		c.updateRouterConfig()
@@ -87,7 +87,7 @@ func (c *RouterConfig) Background() {
 
 	for {
 		select {
-		case signal := <- c.signals:
+		case signal := <-c.signals:
 			c.handle(signal)
 		case <-ticker.C:
 			c.updateRouterConfig()
@@ -113,7 +113,7 @@ func (c *RouterConfig) parse(reader io.ReadCloser) {
 			if err != nil {
 				logger.Warning("Sample should be a valid float, %s given", property.Value)
 			} else {
-				logger.Info("Sample rate has been set to %f%%", c.sample * 100)
+				logger.Info("Sample rate has been set to %f%%", c.sample*100)
 			}
 		case "routers":
 			c.updateRouters(property.Value)

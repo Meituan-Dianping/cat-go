@@ -11,17 +11,17 @@ const batchFlag = '@'
 const batchSplit = ';'
 
 type LocalAggregator struct {
-	event *eventAggregator
+	event       *eventAggregator
 	transaction *transactionAggregator
-	metric *metricAggregator
+	metric      *metricAggregator
 }
 
 func (p *LocalAggregator) flush(m message.Messager) {
 	switch m := m.(type) {
-		case *message.Transaction:
-			sender.handleTransaction(m)
-		default:
-			logger.Warning("Aggregator flusher expected a transaction.")
+	case *message.Transaction:
+		sender.handleTransaction(m)
+	default:
+		logger.Warning("Aggregator flusher expected a transaction.")
 	}
 }
 
@@ -55,18 +55,18 @@ func computeDuration(durationInMillis int) int {
 	} else if durationInMillis < 20 {
 		return durationInMillis
 	} else if durationInMillis < 200 {
-		return durationInMillis - durationInMillis% 5
+		return durationInMillis - durationInMillis%5
 	} else if durationInMillis < 500 {
-		return durationInMillis - durationInMillis% 20
+		return durationInMillis - durationInMillis%20
 	} else if durationInMillis < 2000 {
-		return durationInMillis - durationInMillis% 50
+		return durationInMillis - durationInMillis%50
 	} else if durationInMillis < 20000 {
-		return durationInMillis - durationInMillis% 500
+		return durationInMillis - durationInMillis%500
 	} else if durationInMillis < 1000000 {
-		return durationInMillis - durationInMillis% 10000
+		return durationInMillis - durationInMillis%10000
 	} else {
 		dk := 524288
-		if durationInMillis > 3600 * 1000 {
+		if durationInMillis > 3600*1000 {
 			dk = 3600 * 1000
 		} else {
 			for dk < durationInMillis {
@@ -78,7 +78,7 @@ func computeDuration(durationInMillis int) int {
 }
 
 var aggregator = LocalAggregator{
-	event: newEventAggregator(),
+	event:       newEventAggregator(),
 	transaction: newTransactionAggregator(),
-	metric: newMetricAggregator(),
+	metric:      newMetricAggregator(),
 }

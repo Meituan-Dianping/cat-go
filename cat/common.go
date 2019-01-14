@@ -43,4 +43,3 @@ func compareServerAddress(a, b *serverAddress) bool {
 		return false
 	}
 }
-

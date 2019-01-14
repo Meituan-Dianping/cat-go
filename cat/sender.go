@@ -96,8 +96,8 @@ func (sender *catMessageSender) Background() {
 }
 
 var sender = catMessageSender{
-	normal:  make(chan message.Messager, NORMAL_PRIORITY_QUEUE_SIZE),
-	high:    make(chan message.Messager, HIGH_PRIORITY_QUEUE_SIZE),
+	normal:  make(chan message.Messager, NormalPriorityQueueSize),
+	high:    make(chan message.Messager, HighPriorityQueueSize),
 	chConn:  make(chan net.Conn),
 	encoder: message.NewBinaryEncoder(),
 	buf:     bytes.NewBuffer([]byte{}),

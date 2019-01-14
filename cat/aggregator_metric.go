@@ -15,12 +15,12 @@ type metricData struct {
 }
 
 type metricAggregator struct {
-	ch chan *metricData
+	ch      chan *metricData
 	dataMap map[string]*metricData
 }
 
 func (p *metricAggregator) BackGround() {
-	var ticker = time.NewTicker(time.Second)
+	var ticker = time.NewTicker(MetricAggregatorInterval)
 	for {
 		select {
 		case data := <-p.ch:
@@ -38,7 +38,7 @@ func (p *metricAggregator) send(dataMap map[string]*metricData) {
 		return
 	}
 
-	t := message.NewTransaction(CAT_SYSTEM, METRIC_AGGREGATOR, aggregator.flush)
+	t := message.NewTransaction(System, MetricAggregator, aggregator.flush)
 	defer t.Complete()
 
 	for _, data := range dataMap {
@@ -68,7 +68,7 @@ func (p *metricAggregator) putOrMerge(data *metricData) {
 
 func newMetricAggregator() *metricAggregator {
 	return &metricAggregator{
-		ch:      make(chan *metricData, METRIC_AGGREGATOR_CHANNEL_CAPACITY),
+		ch:      make(chan *metricData, MetricAggregatorChannelCapacity),
 		dataMap: make(map[string]*metricData),
 	}
 }

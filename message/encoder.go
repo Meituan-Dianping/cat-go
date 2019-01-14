@@ -32,7 +32,6 @@ func encodeMessage(encoder Encoder, buf *bytes.Buffer, message Messager) (err er
 	}
 }
 
-
 func (e *encoderBase) EncodeHeader(buf *bytes.Buffer, header *Header) (err error) {
 	if _, err = buf.WriteString(BINARY_PROTOCOL); err != nil {
 		return

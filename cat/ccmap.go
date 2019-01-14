@@ -5,14 +5,14 @@ import (
 )
 
 type CCMap struct {
-	count uint32
+	count   uint32
 	buckets []CCMapBucket
-	hasher CCMapHasher
+	hasher  CCMapHasher
 }
 
 type CCMapBucket struct {
-	mu     sync.Mutex
-	data   map[string]interface{}
+	mu   sync.Mutex
+	data map[string]interface{}
 }
 
 type CCMapHasher func(name string) uint32
@@ -24,8 +24,8 @@ type CCMapComputer func(interface{}) error
 func hasher(name string) uint32 {
 	var h uint32 = 0
 	if len(name) > 0 {
-		for i:=0;i<len(name);i++ {
-			h = 31 * h + uint32(name[i])
+		for i := 0; i < len(name); i++ {
+			h = 31*h + uint32(name[i])
 		}
 	}
 	return h
@@ -33,14 +33,14 @@ func hasher(name string) uint32 {
 
 func NewCCMap(count int) *CCMap {
 	var ccmap = &CCMap{
-		count: uint32(count),
+		count:   uint32(count),
 		buckets: make([]CCMapBucket, count),
-		hasher: hasher,
+		hasher:  hasher,
 	}
 	for i := 0; i < count; i++ {
 		ccmap.buckets[i] = CCMapBucket{
-			mu:     sync.Mutex{},
-			data:   make(map[string]interface{}),
+			mu:   sync.Mutex{},
+			data: make(map[string]interface{}),
 		}
 	}
 	return ccmap

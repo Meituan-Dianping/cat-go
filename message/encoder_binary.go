@@ -7,8 +7,8 @@ import (
 
 const (
 	defaultThreadGroupName = ""
-	defaultThreadId = "0"
-	defaultThreadName = ""
+	defaultThreadId        = "0"
+	defaultThreadName      = ""
 )
 
 type BinaryEncoder struct {
@@ -92,7 +92,7 @@ func encodeMessageWithLeader(buf *bytes.Buffer, m *Message, leader rune) (err er
 	return
 }
 
-func (e *BinaryEncoder) EncodeMessage(buf *bytes.Buffer,  message Messager) (err error) {
+func (e *BinaryEncoder) EncodeMessage(buf *bytes.Buffer, message Messager) (err error) {
 	return encodeMessage(e, buf, message)
 }
 

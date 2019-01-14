@@ -1,36 +1,54 @@
 package cat
 
-const (
-	GOCAT_VERSION = "1.0.0"
+import (
+	"time"
 )
 
 const (
-	FAIL = "fail"
+	GoCatVersion = "2.0.0"
 )
 
 const (
-	DEFAULT_IP = "127.0.0.1"
+	SUCCESS = "0"
+	ERROR   = "-1"
+	FAIL    = "fail"
 )
 
 const (
-	HIGH_PRIORITY_QUEUE_SIZE   = 1000
-	NORMAL_PRIORITY_QUEUE_SIZE = 5000
+	DefaultAppKey   = "cat"
+	DefaultHostname = "GoUnknownHost"
+	DefaultEnv      = "dev"
 
-	TRANSACTION_AGGREGATOR_CHANNEL_CAPACITY = 1000
-	EVENT_AGGREGATOR_CHANNEL_CAPACITY       = 1000
-	METRIC_AGGREGATOR_CHANNEL_CAPACITY = 1000
+	DefaultIp    = "127.0.0.1"
+	DefaultIpHex = "7f000001"
+
+	DefaultServer  = "cat.sankuai.com"
+	DefaultXmlFile = "/data/appdatas/cat/client.xml"
 )
 
 const (
-	CAT_SYSTEM = "System"
+	HighPriorityQueueSize   = 1000
+	NormalPriorityQueueSize = 5000
 
-	TRANSACTION_AGGREGATOR = "TransactionAggregator"
-	EVENT_AGGREGATOR       = "EventAggregator"
-	METRIC_AGGREGATOR       = "MetricAggregator"
+	TransactionAggregatorChannelCapacity = 1000
+	EventAggregatorChannelCapacity       = 1000
+	MetricAggregatorChannelCapacity      = 1000
+
+	TransactionAggregatorInterval = time.Second * 3
+	EventAggregatorInterval       = time.Second * 3
+	MetricAggregatorInterval      = time.Second * 3
+)
+
+const (
+	System = "System"
+
+	TransactionAggregator = "TransactionAggregator"
+	EventAggregator       = "EventAggregator"
+	MetricAggregator      = "MetricAggregator"
 )
 
 type Signals chan int
 
 const (
-	S_RESET_CONNECTION = iota
+	SignalResetConnection = iota
 )

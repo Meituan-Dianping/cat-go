@@ -9,7 +9,7 @@ import (
 )
 
 type catMessageManager struct {
-	index uint32
+	index  uint32
 	offset uint32
 }
 
