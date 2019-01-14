@@ -9,7 +9,7 @@ import (
 
 var cat = gocat.Instance()
 
-const TTYPE = "foo"
+const TestType = "foo"
 
 func init() {
 	gocat.Init("gocat.v2")
@@ -17,30 +17,30 @@ func init() {
 
 // send transaction
 func case1() {
-	t := cat.NewTransaction(TTYPE, "test")
+	t := cat.NewTransaction(TestType, "test")
 	defer t.Complete()
 	t.AddData("foo", "bar")
 	t.SetStatus(gocat.FAIL)
 	t.SetDurationStart(time.Now().Add(-5 * time.Second))
-	t.SetTime(time.Now().Add(-5* time.Second))
+	t.SetTime(time.Now().Add(-5 * time.Second))
 	t.SetDuration(time.Millisecond * 500)
 }
 
 // send completed transaction with duration
 func case2() {
-	cat.NewCompletedTransactionWithDuration(TTYPE, "completed", time.Second*24)
-	cat.NewCompletedTransactionWithDuration(TTYPE, "completed-over-60s", time.Second*65)
+	cat.NewCompletedTransactionWithDuration(TestType, "completed", time.Second*24)
+	cat.NewCompletedTransactionWithDuration(TestType, "completed-over-60s", time.Second*65)
 }
 
 // send event
 func case3() {
 	// way 1
-	e := cat.NewEvent(TTYPE, "event-1")
+	e := cat.NewEvent(TestType, "event-1")
 	e.Complete()
 	// way 2
-	cat.LogEvent(TTYPE, "event-2")
-	cat.LogEvent(TTYPE, "event-3", gocat.FAIL)
-	cat.LogEvent(TTYPE, "event-4", gocat.FAIL, "foobar")
+	cat.LogEvent(TestType, "event-2")
+	cat.LogEvent(TestType, "event-3", gocat.FAIL)
+	cat.LogEvent(TestType, "event-4", gocat.FAIL, "foobar")
 }
 
 // send error with backtrace

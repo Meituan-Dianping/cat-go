@@ -24,6 +24,7 @@ const (
 
 	DefaultServer  = "cat.sankuai.com"
 	DefaultXmlFile = "/data/appdatas/cat/client.xml"
+	DefaultLogDir  = "/data/applogs/cat"
 )
 
 const (

@@ -59,7 +59,7 @@ func (c *RouterConfig) updateRouterConfig() {
 
 		resp, err := client.Get(u.String())
 		if err != nil {
-			logger.Warning("Error occurred while getting router config from with url %s", u.String())
+			logger.Warning("Error occurred while getting router config from url %s", u.String())
 			continue
 		}
 
