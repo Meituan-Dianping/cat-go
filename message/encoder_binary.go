@@ -121,7 +121,9 @@ func (e *BinaryEncoder) EncodeTransaction(buf *bytes.Buffer, trans *Transaction)
 	if err = encodeMessageEnd(buf, trans); err != nil {
 		return
 	}
-	if err = writeI64(buf, trans.GetDurationInMillis() * 1000); err != nil {
+
+	duration := trans.GetDuration().Nanoseconds() / time.Microsecond.Nanoseconds()
+	if err = writeI64(buf, duration); err != nil {
 		return
 	}
 	return

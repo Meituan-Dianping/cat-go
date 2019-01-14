@@ -105,9 +105,10 @@ func (data *transactionData) add(transaction *message.Transaction) {
 		data.fail++
 	}
 
-	data.sum += transaction.GetDurationInMillis()
+	durationInMillis := transaction.GetDuration().Nanoseconds() / time.Microsecond.Nanoseconds()
+	data.sum += durationInMillis
 
-	duration := computeDuration(int(transaction.GetDurationInMillis()))
+	duration := computeDuration(int(durationInMillis))
 	if _, ok := data.durations[duration]; ok {
 		data.durations[duration]++
 	} else {

@@ -55,10 +55,6 @@ func (t *Transaction) GetDuration() time.Duration {
 	return t.duration
 }
 
-func (t *Transaction) GetDurationInMillis() int64 {
-	return t.duration.Nanoseconds() / time.Millisecond.Nanoseconds()
-}
-
 func (t *Transaction) SetDuration(duration time.Duration) {
 	t.duration = duration
 }

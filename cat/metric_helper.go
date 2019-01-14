@@ -1,5 +1,9 @@
 package cat
 
+import (
+	"time"
+)
+
 type MetricHelper struct {
 	name string
 	tags map[string]string
@@ -21,6 +25,6 @@ func (h *MetricHelper) Count(count int) {
 	// TODO check if int is over than i64
 }
 
-func (h *MetricHelper) DurationMs(duration int) {
+func (h *MetricHelper) Duration(duration time.Duration) {
 	// TODO check if int is over than i64
 }
