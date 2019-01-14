@@ -110,8 +110,6 @@ func (c *RouterConfig) parse(reader io.ReadCloser) {
 		switch property.Id {
 		case "sample":
 			c.sample, err = strconv.ParseFloat(property.Value, 32)
-			// TODO sample
-			c.sample = 0.1
 			if err != nil {
 				logger.Warning("Sample should be a valid float, %s given", property.Value)
 			} else {

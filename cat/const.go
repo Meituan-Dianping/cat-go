@@ -18,6 +18,7 @@ const (
 
 	TRANSACTION_AGGREGATOR_CHANNEL_CAPACITY = 1000
 	EVENT_AGGREGATOR_CHANNEL_CAPACITY       = 1000
+	METRIC_AGGREGATOR_CHANNEL_CAPACITY = 1000
 )
 
 const (
@@ -25,6 +26,7 @@ const (
 
 	TRANSACTION_AGGREGATOR = "TransactionAggregator"
 	EVENT_AGGREGATOR       = "EventAggregator"
+	METRIC_AGGREGATOR       = "MetricAggregator"
 )
 
 type Signals chan int

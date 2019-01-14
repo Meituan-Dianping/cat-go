@@ -58,7 +58,7 @@ func (p *transactionAggregator) send(dataMap map[string]*transactionData) {
 	}
 }
 
-func (p *transactionAggregator) getOrDefaultData(transaction *message.Transaction) *transactionData {
+func (p *transactionAggregator) getOrDefault(transaction *message.Transaction) *transactionData {
 	key := fmt.Sprintf("%s,%s", transaction.Type, transaction.Name)
 
 	if data, ok := p.dataMap[key]; ok {
@@ -81,7 +81,7 @@ func (p *transactionAggregator) BackGround() {
 	for {
 		select {
 		case trans := <-p.ch:
-			p.getOrDefaultData(trans).add(trans)
+			p.getOrDefault(trans).add(trans)
 		case <-ticker.C:
 			dataMap := p.dataMap
 			p.dataMap = make(map[string]*transactionData)
@@ -105,10 +105,10 @@ func (data *transactionData) add(transaction *message.Transaction) {
 		data.fail++
 	}
 
-	durationInMillis := transaction.GetDuration().Nanoseconds() / time.Microsecond.Nanoseconds()
-	data.sum += durationInMillis
+	millis := transaction.GetDuration().Nanoseconds() / time.Millisecond.Nanoseconds()
+	data.sum += millis
 
-	duration := computeDuration(int(durationInMillis))
+	duration := computeDuration(int(millis))
 	if _, ok := data.durations[duration]; ok {
 		data.durations[duration]++
 	} else {

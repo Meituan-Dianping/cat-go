@@ -38,7 +38,7 @@ func (p *eventAggregator) send(datas map[string]*eventData) {
 	}
 }
 
-func (p *eventAggregator) getOrDefaultData(event *message.Event) *eventData{
+func (p *eventAggregator) getOrDefault(event *message.Event) *eventData{
 	key := fmt.Sprintf("%s,%s", event.Type, event.Name)
 
 	if data, ok := p.dataMap[key]; ok {
@@ -59,7 +59,7 @@ func (p *eventAggregator) BackGround() {
 	for {
 		select {
 		case event := <- p.ch:
-			p.getOrDefaultData(event).add(event)
+			p.getOrDefault(event).add(event)
 		case <-ticker.C:
 			dataMap := p.dataMap
 			p.dataMap = make(map[string]*eventData)

@@ -5,8 +5,14 @@ import (
 	"time"
 )
 
+const (
+	defaultThreadGroupName = ""
+	defaultThreadId = "0"
+	defaultThreadName = ""
+)
+
 type BinaryEncoder struct {
-	Encoder
+	encoderBase
 }
 
 func NewBinaryEncoder() *BinaryEncoder {
@@ -73,7 +79,10 @@ func encodeMessageEnd(buf *bytes.Buffer, m Messager) (err error) {
 	return
 }
 
-func encodeMessage(buf *bytes.Buffer, m *Message) (err error) {
+func encodeMessageWithLeader(buf *bytes.Buffer, m *Message, leader rune) (err error) {
+	if _, err = buf.WriteRune(leader); err != nil {
+		return
+	}
 	if err = encodeMessageStart(buf, m); err != nil {
 		return
 	}
@@ -83,22 +92,8 @@ func encodeMessage(buf *bytes.Buffer, m *Message) (err error) {
 	return
 }
 
-func (e *BinaryEncoder) EncodeMessage(buf *bytes.Buffer, message Messager) (err error) {
-	switch m := message.(type) {
-	case *Transaction:
-		if err = e.EncodeTransaction(buf, m); err != nil {
-			return
-		}
-	case *Event:
-		if err = e.EncodeEvent(buf, m); err != nil {
-			return
-		}
-	case *Heartbeat:
-		if err = e.EncodeHeartbeat(buf, m); err != nil {
-			return
-		}
-	}
-	return
+func (e *BinaryEncoder) EncodeMessage(buf *bytes.Buffer,  message Messager) (err error) {
+	return encodeMessage(e, buf, message)
 }
 
 func (e *BinaryEncoder) EncodeTransaction(buf *bytes.Buffer, trans *Transaction) (err error) {
@@ -130,63 +125,13 @@ func (e *BinaryEncoder) EncodeTransaction(buf *bytes.Buffer, trans *Transaction)
 }
 
 func (e *BinaryEncoder) EncodeEvent(buf *bytes.Buffer, m *Event) (err error) {
-	if _, err = buf.WriteRune('E'); err != nil {
-		return
-	}
-	if err = encodeMessage(buf, &m.Message); err != nil {
-		return
-	}
-	return
+	return encodeMessageWithLeader(buf, &m.Message, 'E')
 }
 
 func (e *BinaryEncoder) EncodeHeartbeat(buf *bytes.Buffer, m *Heartbeat) (err error) {
-	if _, err = buf.WriteRune('H'); err != nil {
-		return
-	}
-	if err = encodeMessage(buf, &m.Message); err != nil {
-		return
-	}
-	return
+	return encodeMessageWithLeader(buf, &m.Message, 'H')
 }
 
-func (e *BinaryEncoder) EncodeHeader(buf *bytes.Buffer, header *Header) (err error) {
-	if _, err = buf.WriteString(BINARY_PROTOCOL); err != nil {
-		return
-	}
-	if err = writeString(buf, header.Domain); err != nil {
-		return
-	}
-	if err = writeString(buf, header.Hostname); err != nil {
-		return
-	}
-	if err = writeString(buf, header.Ip); err != nil {
-		return
-	}
-
-	// These fields are threadGroupName, threadId and threadName originally, which are not given in golang.
-	if err = writeString(buf, ""); err != nil {
-		return
-	}
-	if err = writeString(buf, "0"); err != nil {
-		return
-	}
-	if err = writeString(buf, ""); err != nil {
-		return
-	}
-
-	if err = writeString(buf, header.MessageId); err != nil {
-		return
-	}
-	if err = writeString(buf, header.ParentMessageId); err != nil {
-		return
-	}
-	if err = writeString(buf, header.RootMessageId); err != nil {
-		return
-	}
-
-	// sessionToken.
-	if err = writeString(buf, ""); err != nil {
-		return
-	}
-	return
+func (e *BinaryEncoder) EncodeMetric(buf *bytes.Buffer, m *Metric) (err error) {
+	return encodeMessageWithLeader(buf, &m.Message, 'M')
 }

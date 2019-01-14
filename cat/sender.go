@@ -78,11 +78,11 @@ func (sender *catMessageSender) Background() {
 	for {
 		if sender.conn == nil {
 			sender.conn = <-sender.chConn
-			logger.Info("Received a new connection: %s", sender.conn.LocalAddr().String())
+			logger.Info("Received a new connection: %s", sender.conn.RemoteAddr().String())
 		} else {
 			select {
 			case conn := <-sender.chConn:
-				logger.Info("Received a new connection: %s", conn.LocalAddr().String())
+				logger.Info("Received a new connection: %s", conn.RemoteAddr().String())
 				sender.conn = conn
 			case m := <-sender.high:
 				// logger.Debug("Receive a message [%s|%s] from high priority channel", m.GetType(), m.GetName())

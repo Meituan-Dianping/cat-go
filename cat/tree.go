@@ -68,11 +68,11 @@ func (t *catMessageTree) LogMetricForCount(name string, args ...int) {
 	} else {
 		count = args[0]
 	}
-	_ = count
+	aggregator.metric.AddCount(name, count)
 }
 
 func (t *catMessageTree) LogMetricForDuration(name string, duration time.Duration) {
-	// TODO
+	aggregator.metric.AddDuration(name, duration)
 }
 
 func (t *catMessageTree) NewMetricHelper(name string) *MetricHelper {
