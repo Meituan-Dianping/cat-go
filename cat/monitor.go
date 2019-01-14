@@ -99,22 +99,18 @@ func (m *catMonitor) buildXml() *bytes.Buffer {
 	return buf
 }
 
-func send(m message.Messager) {
-	manager.flush(m)
-}
-
 func (m *catMonitor) collectAndSend() {
-	var event *message.Event
-	event = &message.Event{
-		Message: message.NewMessage("Cat_golang_Client_Version", GOCAT_VERSION, send),
-	}
-	event.Complete()
+	var trans = message.NewTransaction(CAT_SYSTEM, "Status", manager.flush)
+	defer trans.Complete()
+
+	trans.LogEvent("Cat_golang_Client_Version", GOCAT_VERSION)
 
 	// NOTE type & name is useless while sending a heartbeat
-	heartbeat := &message.Heartbeat{
-		Message: message.NewMessage("Heartbeat", config.ip, send),
-	}
+	heartbeat := message.NewHeartbeat("Heartbeat", config.ip, nil)
+	heartbeat.SetData(m.buildXml().String())
 	heartbeat.Complete()
+
+	trans.AddChild(heartbeat)
 }
 
 var monitor = catMonitor{
