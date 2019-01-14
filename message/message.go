@@ -22,8 +22,8 @@ type MessageGetter interface {
 
 type Messager interface {
 	MessageGetter
-	AddData(k, v string)
-	AddDataPair(data string)
+	AddData(k string, v ...string)
+	SetData(v string)
 	SetStatus(status string)
 	SetTime(time time.Time)
 	Complete()
@@ -82,28 +82,22 @@ func (m *Message) SetTime(t time.Time) {
 	m.timestamp = t
 }
 
-func (m *Message) AddData(k, v string) {
-	if len(k) == 0 || len(v) == 0 {
-		// TODO warning
-		return
-	}
+func (m *Message) AddData(k string, v ...string) {
 	if m.data.Len() != 0 {
 		m.data.WriteRune('&')
 	}
-	m.data.WriteString(k)
-	m.data.WriteRune('=')
-	m.data.WriteString(v)
+	if len(v) == 0 {
+		m.data.WriteString(k)
+	} else {
+		m.data.WriteString(k)
+		m.data.WriteRune('=')
+		m.data.WriteString(v[0])
+	}
 }
 
-func (m *Message) AddDataPair(data string) {
-	if len(data) == 0 {
-		// TODO warning
-		return
-	}
-	if m.data.Len() != 0 {
-		m.data.WriteRune('&')
-	}
-	m.data.WriteString(data)
+func (m *Message) SetData(v string) {
+	m.data.Reset()
+	m.data.WriteString(v)
 }
 
 func (m *Message) SetStatus(status string) {

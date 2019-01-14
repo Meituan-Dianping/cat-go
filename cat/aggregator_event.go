@@ -34,7 +34,7 @@ func (p *eventAggregator) send(datas map[string]*eventData) {
 		buf.WriteInt(data.count)
 		buf.WriteRune(batchSplit)
 		buf.WriteInt(data.fail)
-		event.AddDataPair(buf.String())
+		event.SetData(buf.String())
 	}
 }
 

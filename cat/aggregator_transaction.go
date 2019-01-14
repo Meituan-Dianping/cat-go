@@ -54,7 +54,7 @@ func (p *transactionAggregator) send(dataMap map[string]*transactionData) {
 		}
 		buf.WriteRune(batchSplit)
 
-		event.AddDataPair(buf.String())
+		event.SetData(buf.String())
 	}
 }
 

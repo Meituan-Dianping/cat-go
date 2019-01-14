@@ -76,7 +76,7 @@ func (t *Transaction) LogEvent(mtype, mname string, args ...string) {
 		e.SetStatus(args[0])
 	}
 	if len(args) > 1 {
-		e.AddDataPair(args[1])
+		e.SetData(args[1])
 	}
 	e.Complete()
 }
