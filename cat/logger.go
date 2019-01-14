@@ -38,7 +38,7 @@ func getWriterByTime(time time.Time) io.Writer {
 		log.Fatalf("Cannot open log file: %s, logs will be redirected to stdout", file.Name())
 		return os.Stdout
 	} else {
-		log.Printf("Log has been written to the location: %s", file.Name())
+		log.Printf("Log has been redirected to the file: %s", file.Name())
 		return file
 	}
 }

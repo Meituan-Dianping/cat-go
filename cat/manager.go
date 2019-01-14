@@ -11,6 +11,8 @@ import (
 type catMessageManager struct {
 	index  uint32
 	offset uint32
+	hour int
+	messageIdPrefix string
 }
 
 func (p *catMessageManager) sendTransaction(t *message.Transaction) {
@@ -26,7 +28,7 @@ func (p *catMessageManager) flush(m message.Messager) {
 	case *message.Transaction:
 		if m.Status != SUCCESS {
 			sender.handleTransaction(m)
-		} else if p.isSample() {
+		} else if p.isSample(router.sample) {
 			sender.handleTransaction(m)
 		} else {
 			aggregator.transaction.Put(m)
@@ -42,13 +44,13 @@ func (p *catMessageManager) flush(m message.Messager) {
 	}
 }
 
-func (p *catMessageManager) isSample() bool {
-	if router.sample > 1.0 {
+func (p *catMessageManager) isSample(sampleRate float64) bool {
+	if sampleRate > 1.0 {
 		return true
-	} else if router.sample < 1e-9 {
+	} else if sampleRate < 1e-9 {
 		return false
 	}
-	var cycle = uint32(1 / router.sample)
+	var cycle = uint32(1 / sampleRate)
 
 	var current, next uint32
 	for {
@@ -62,12 +64,23 @@ func (p *catMessageManager) isSample() bool {
 }
 
 func (p *catMessageManager) nextId() string {
-	// TODO reset every hour.
-	hour := time.Now().Unix() / 3600
-	return fmt.Sprintf("%s-%s-%d-%d", config.domain, config.ipHex, hour, atomic.AddUint32(&p.index, 1))
+	hour := int(time.Now().Unix() / 3600)
+
+	if hour != p.hour {
+		p.hour = hour
+		p.messageIdPrefix = fmt.Sprintf("%s-%s-%d", config.domain, config.ipHex, hour)
+
+		currentIndex := atomic.LoadUint32(&p.index)
+		if atomic.CompareAndSwapUint32(&p.index, currentIndex, 0) {
+			logger.Info("MessageId prefix has changed to: %s", p.messageIdPrefix)
+		}
+	}
+
+	return fmt.Sprintf("%s-%d", p.messageIdPrefix, atomic.AddUint32(&p.index, 1))
 }
 
 var manager = catMessageManager{
 	index:  0,
 	offset: 0,
+	hour: 0,
 }
