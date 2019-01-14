@@ -42,6 +42,7 @@ func (m *catMonitor) Background() {
 		case <-timer.C:
 			m.collectAndSend()
 		}
+		timer.Stop()
 	}
 
 	m.exit()
