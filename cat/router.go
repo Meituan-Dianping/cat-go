@@ -23,19 +23,24 @@ type routerConfigXML struct {
 	Properties []routerConfigXMLProperty `xml:"property"`
 }
 
-type RouterConfig struct {
+type catRouterConfig struct {
+	signalsMixin
 	sample  float64
 	routers []serverAddress
 	current *serverAddress
-	signals signals
 }
 
-var router = RouterConfig{
-	sample:  1.0,
-	routers: make([]serverAddress, 0),
+var router = catRouterConfig{
+	signalsMixin: makeSignalsMixedIn(signalRouterExit),
+	sample:       1.0,
+	routers:      make([]serverAddress, 0),
 }
 
-func (c *RouterConfig) updateRouterConfig() {
+func (c *catRouterConfig) GetName() string {
+	return "Router"
+}
+
+func (c *catRouterConfig) updateRouterConfig() {
 	var query = url.Values{}
 	query.Add("env", config.env)
 	query.Add("domain", config.domain)
@@ -71,31 +76,39 @@ func (c *RouterConfig) updateRouterConfig() {
 	return
 }
 
-func (c *RouterConfig) handle(signal int) {
+func (c *catRouterConfig) handle(signal int) int {
 	switch signal {
 	case signalResetConnection:
 		logger.Warning("Connection has been reset, reconnecting.")
 		c.current = nil
 		c.updateRouterConfig()
+	case signalShutdown:
+		return -1
 	}
+	return 0
 }
 
-func (c *RouterConfig) Background() {
+func (c *catRouterConfig) Background() {
 	c.updateRouterConfig()
 
 	ticker := time.NewTicker(time.Minute * 3)
 
-	for {
+	for c.isAlive {
 		select {
 		case signal := <-c.signals:
-			c.handle(signal)
+			if c.handle(signal) < 0 {
+				ticker.Stop()
+				c.stop()
+			}
 		case <-ticker.C:
 			c.updateRouterConfig()
 		}
 	}
+
+	c.exit()
 }
 
-func (c *RouterConfig) parse(reader io.ReadCloser) {
+func (c *catRouterConfig) parse(reader io.ReadCloser) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return
@@ -121,7 +134,7 @@ func (c *RouterConfig) parse(reader io.ReadCloser) {
 	}
 }
 
-func (c *RouterConfig) updateRouters(router string) {
+func (c *catRouterConfig) updateRouters(router string) {
 	newRouters := resolveServerAddresses(router)
 
 	oldLen, newLen := len(c.routers), len(newRouters)

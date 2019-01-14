@@ -1,5 +1,9 @@
 package cat
 
+import (
+	"os"
+)
+
 func Init(domain string) {
 	config.Init(domain)
 
@@ -10,7 +14,11 @@ func Init(domain string) {
 }
 
 func Shutdown() {
-	monitor.Shutdown()
+	scheduler.shutdown()
+}
+
+func DebugOn() {
+	logger.logger.SetOutput(os.Stdout)
 }
 
 func Wait() {

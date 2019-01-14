@@ -47,15 +47,26 @@ const (
 )
 
 const ( // Declared a series of reserved type and names.
-	typeSystem = "typeSystem"
+	typeSystem = "System"
 
-	nameTransactionAggregator = "nameTransactionAggregator"
-	nameEventAggregator       = "nameEventAggregator"
-	nameMetricAggregator      = "nameMetricAggregator"
+	nameReboot = "Reboot"
+
+	nameTransactionAggregator = "TransactionAggregator"
+	nameEventAggregator       = "EventAggregator"
+	nameMetricAggregator      = "MetricAggregator"
 )
 
-type signals chan int
-
 const (
-	signalResetConnection = iota
+	signal0 = iota
+
+	signalResetConnection
+
+	signalShutdown
+
+	signalSenderExit
+	signalMonitorExit
+	signalRouterExit
+	signalTransactionAggregatorExit
+	signalEventAggregatorExit
+	signalMetricAggregatorExit
 )

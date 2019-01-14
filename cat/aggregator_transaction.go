@@ -17,9 +17,20 @@ type transactionData struct {
 	durations map[int]int
 }
 
+func (p *transactionAggregator) GetName() string {
+	return "TransactionAggregator"
+}
+
 type transactionAggregator struct {
+	signalsMixin
 	ch      chan *message.Transaction
 	dataMap map[string]*transactionData
+}
+
+func (p *transactionAggregator) collectAndSend() {
+	dataMap := p.dataMap
+	p.dataMap = make(map[string]*transactionData)
+	p.send(dataMap)
 }
 
 func (p *transactionAggregator) send(dataMap map[string]*transactionData) {
@@ -78,16 +89,23 @@ func (p *transactionAggregator) getOrDefault(transaction *message.Transaction) *
 
 func (p *transactionAggregator) BackGround() {
 	var ticker = time.NewTicker(transactionAggregatorInterval)
-	for {
+	for p.isAlive {
 		select {
+		case signal := <- p.signals:
+			if signal == signalShutdown {
+				close(p.ch)
+				ticker.Stop()
+				p.stop()
+			}
 		case trans := <-p.ch:
 			p.getOrDefault(trans).add(trans)
 		case <-ticker.C:
-			dataMap := p.dataMap
-			p.dataMap = make(map[string]*transactionData)
-			p.send(dataMap)
+			p.collectAndSend()
 		}
 	}
+
+	p.collectAndSend()
+	p.exit()
 }
 
 func (p *transactionAggregator) Put(t *message.Transaction) {
@@ -118,7 +136,8 @@ func (data *transactionData) add(transaction *message.Transaction) {
 
 func newTransactionAggregator() *transactionAggregator {
 	return &transactionAggregator{
-		ch:      make(chan *message.Transaction, transactionAggregatorChannelCapacity),
-		dataMap: make(map[string]*transactionData),
+		signalsMixin: makeSignalsMixedIn(signalTransactionAggregatorExit),
+		ch:           make(chan *message.Transaction, transactionAggregatorChannelCapacity),
+		dataMap:      make(map[string]*transactionData),
 	}
 }

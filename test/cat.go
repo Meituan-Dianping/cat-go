@@ -64,13 +64,17 @@ func run(f func()) {
 }
 
 func main() {
-	go run(case1)
-	go run(case2)
-	go run(case3)
-	go run(case4)
-	go run(case5)
+	// go run(case1)
+	// go run(case2)
+	// go run(case3)
+	// go run(case4)
+	// go run(case5)
 
-	// wait until main process has been killed
-	var ch chan int
-	<-ch
+	// // wait until main process has been killed
+	// var ch chan int
+	// <-ch
+	gocat.DebugOn()
+
+	case1()
+	gocat.Shutdown()
 }

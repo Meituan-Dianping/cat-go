@@ -14,8 +14,19 @@ type eventData struct {
 }
 
 type eventAggregator struct {
+	signalsMixin
 	ch      chan *message.Event
 	dataMap map[string]*eventData
+}
+
+func (p *eventAggregator) GetName() string {
+	return "EventAggregator"
+}
+
+func (p *eventAggregator) collectAndSend() {
+	dataMap := p.dataMap
+	p.dataMap = make(map[string]*eventData)
+	p.send(dataMap)
 }
 
 func (p *eventAggregator) send(dataMap map[string]*eventData) {
@@ -56,16 +67,23 @@ func (p *eventAggregator) getOrDefault(event *message.Event) *eventData {
 
 func (p *eventAggregator) BackGround() {
 	var ticker = time.NewTicker(eventAggregatorInterval)
-	for {
+	for p.isAlive {
 		select {
+		case signal := <- p.signals:
+			if signal == signalShutdown {
+				close(p.ch)
+				ticker.Stop()
+				p.stop()
+			}
 		case event := <-p.ch:
 			p.getOrDefault(event).add(event)
 		case <-ticker.C:
-			dataMap := p.dataMap
-			p.dataMap = make(map[string]*eventData)
-			go p.send(dataMap)
+			p.collectAndSend()
 		}
 	}
+
+	p.collectAndSend()
+	p.exit()
 }
 
 func (p *eventAggregator) Put(event *message.Event) {
@@ -86,7 +104,8 @@ func (data *eventData) add(event *message.Event) {
 
 func newEventAggregator() *eventAggregator {
 	return &eventAggregator{
-		ch:      make(chan *message.Event, eventAggregatorChannelCapacity),
-		dataMap: make(map[string]*eventData),
+		signalsMixin: makeSignalsMixedIn(signalEventAggregatorExit),
+		ch:           make(chan *message.Event, eventAggregatorChannelCapacity),
+		dataMap:      make(map[string]*eventData),
 	}
 }

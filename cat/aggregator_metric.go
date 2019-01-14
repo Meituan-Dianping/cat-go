@@ -15,22 +15,40 @@ type metricData struct {
 }
 
 type metricAggregator struct {
+	signalsMixin
 	ch      chan *metricData
 	dataMap map[string]*metricData
 }
 
+func (p *metricAggregator) GetName() string {
+	return "MetricAggregator"
+}
+
 func (p *metricAggregator) BackGround() {
 	var ticker = time.NewTicker(metricAggregatorInterval)
-	for {
+	for p.isAlive {
 		select {
+		case signal := <- p.signals:
+			if signal == signalShutdown {
+				close(p.ch)
+				ticker.Stop()
+				p.stop()
+			}
 		case data := <-p.ch:
 			p.putOrMerge(data)
 		case <-ticker.C:
-			dataMap := p.dataMap
-			p.dataMap = make(map[string]*metricData)
-			p.send(dataMap)
+			p.collectAndSend()
 		}
 	}
+
+	p.collectAndSend()
+	p.exit()
+}
+
+func (p *metricAggregator) collectAndSend() {
+	dataMap := p.dataMap
+	p.dataMap = make(map[string]*metricData)
+	p.send(dataMap)
 }
 
 func (p *metricAggregator) send(dataMap map[string]*metricData) {
@@ -68,8 +86,9 @@ func (p *metricAggregator) putOrMerge(data *metricData) {
 
 func newMetricAggregator() *metricAggregator {
 	return &metricAggregator{
-		ch:      make(chan *metricData, metricAggregatorChannelCapacity),
-		dataMap: make(map[string]*metricData),
+		signalsMixin: makeSignalsMixedIn(signalMetricAggregatorExit),
+		ch:           make(chan *metricData, metricAggregatorChannelCapacity),
+		dataMap:      make(map[string]*metricData),
 	}
 }
 

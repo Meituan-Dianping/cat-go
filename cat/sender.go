@@ -7,17 +7,6 @@ import (
 	"net"
 )
 
-type catMessageSender struct {
-	normal  chan message.Messager
-	high    chan message.Messager
-	chConn  chan net.Conn
-	encoder message.Encoder
-
-	buf *bytes.Buffer
-
-	conn net.Conn
-}
-
 func createHeader() *message.Header {
 	return &message.Header{
 		Domain:   config.domain,
@@ -28,6 +17,23 @@ func createHeader() *message.Header {
 		ParentMessageId: "",
 		RootMessageId:   "",
 	}
+}
+
+type catMessageSender struct {
+	signalsMixin
+
+	normal  chan message.Messager
+	high    chan message.Messager
+	chConn  chan net.Conn
+	encoder message.Encoder
+
+	buf *bytes.Buffer
+
+	conn net.Conn
+}
+
+func (sender *catMessageSender) GetName() string {
+	return "Sender"
 }
 
 func (sender *catMessageSender) send(m message.Messager) (err error) {
@@ -75,12 +81,19 @@ func (sender *catMessageSender) handleEvent(event *message.Event) {
 }
 
 func (sender *catMessageSender) Background() {
-	for {
+	for sender.isAlive {
 		if sender.conn == nil {
 			sender.conn = <-sender.chConn
 			logger.Info("Received a new connection: %s", sender.conn.RemoteAddr().String())
 		} else {
 			select {
+			case signal := <-sender.signals:
+				if signal == signalShutdown {
+					close(sender.chConn)
+					close(sender.high)
+					close(sender.normal)
+					sender.stop()
+				}
 			case conn := <-sender.chConn:
 				logger.Info("Received a new connection: %s", conn.RemoteAddr().String())
 				sender.conn = conn
@@ -93,13 +106,22 @@ func (sender *catMessageSender) Background() {
 			}
 		}
 	}
+
+	for m := range sender.high {
+		sender.send(m)
+	}
+	for m := range sender.normal {
+		sender.send(m)
+	}
+	sender.exit()
 }
 
 var sender = catMessageSender{
-	normal:  make(chan message.Messager, normalPriorityQueueSize),
-	high:    make(chan message.Messager, highPriorityQueueSize),
-	chConn:  make(chan net.Conn),
-	encoder: message.NewBinaryEncoder(),
-	buf:     bytes.NewBuffer([]byte{}),
-	conn:    nil,
+	signalsMixin: makeSignalsMixedIn(signalSenderExit),
+	normal:       make(chan message.Messager, normalPriorityQueueSize),
+	high:         make(chan message.Messager, highPriorityQueueSize),
+	chConn:       make(chan net.Conn),
+	encoder:      message.NewBinaryEncoder(),
+	buf:          bytes.NewBuffer([]byte{}),
+	conn:         nil,
 }
