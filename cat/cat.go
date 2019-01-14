@@ -20,6 +20,3 @@ func Shutdown() {
 func DebugOn() {
 	logger.logger.SetOutput(os.Stdout)
 }
-
-func Wait() {
-}

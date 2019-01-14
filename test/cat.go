@@ -2,17 +2,18 @@ package main
 
 import (
 	"errors"
+	"sync"
 	"time"
 
-	gocat "../cat"
+	"../cat"
 )
-
-var cat = gocat.Instance()
 
 const TestType = "foo"
 
+var wg = sync.WaitGroup{}
+
 func init() {
-	gocat.Init("gocat.v2")
+	cat.Init("gocat.v2")
 }
 
 // send transaction
@@ -20,7 +21,7 @@ func case1() {
 	t := cat.NewTransaction(TestType, "test")
 	defer t.Complete()
 	t.AddData("foo", "bar")
-	t.SetStatus(gocat.FAIL)
+	t.SetStatus(cat.FAIL)
 	t.SetDurationStart(time.Now().Add(-5 * time.Second))
 	t.SetTime(time.Now().Add(-5 * time.Second))
 	t.SetDuration(time.Millisecond * 500)
@@ -39,8 +40,8 @@ func case3() {
 	e.Complete()
 	// way 2
 	cat.LogEvent(TestType, "event-2")
-	cat.LogEvent(TestType, "event-3", gocat.FAIL)
-	cat.LogEvent(TestType, "event-4", gocat.FAIL, "foobar")
+	cat.LogEvent(TestType, "event-3", cat.FAIL)
+	cat.LogEvent(TestType, "event-4", cat.FAIL, "foobar")
 }
 
 // send error with backtrace
@@ -54,27 +55,34 @@ func case5() {
 	cat.LogMetricForCount("metric-1")
 	cat.LogMetricForCount("metric-2", 3)
 	cat.LogMetricForDuration("metric-3", 150*time.Millisecond)
+	cat.NewMetricHelper("metric-4").Count(7)
+	cat.NewMetricHelper("metric-5").Duration(time.Second)
 }
 
 func run(f func()) {
-	for {
+	defer wg.Done()
+
+	for i := 0; i < 100; i++ {
 		f()
 		time.Sleep(time.Millisecond)
 	}
 }
 
+func start(f func()) {
+	wg.Add(1)
+	go run(f)
+}
+
 func main() {
-	// go run(case1)
-	// go run(case2)
-	// go run(case3)
-	// go run(case4)
-	// go run(case5)
+	cat.DebugOn()
 
-	// // wait until main process has been killed
-	// var ch chan int
-	// <-ch
-	gocat.DebugOn()
+	start(case1)
+	start(case2)
+	start(case3)
+	start(case4)
+	start(case5)
 
-	case1()
-	gocat.Shutdown()
+	wg.Wait()
+
+	cat.Shutdown()
 }

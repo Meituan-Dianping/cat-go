@@ -4,22 +4,22 @@ import (
 	"sync"
 )
 
-type CCMap struct {
+type ccMap struct {
 	count   uint32
-	buckets []CCMapBucket
-	hasher  CCMapHasher
+	buckets []ccMapBucket
+	hasher  ccMapHasher
 }
 
-type CCMapBucket struct {
+type ccMapBucket struct {
 	mu   sync.Mutex
 	data map[string]interface{}
 }
 
-type CCMapHasher func(name string) uint32
+type ccMapHasher func(name string) uint32
 
-type CCMapCreator func(name string) interface{}
+type ccMapCreator func(name string) interface{}
 
-type CCMapComputer func(interface{}) error
+type ccMapComputer func(interface{}) error
 
 func hasher(name string) uint32 {
 	var h uint32 = 0
@@ -31,14 +31,14 @@ func hasher(name string) uint32 {
 	return h
 }
 
-func NewCCMap(count int) *CCMap {
-	var ccmap = &CCMap{
+func newCCMap(count int) *ccMap {
+	var ccmap = &ccMap{
 		count:   uint32(count),
-		buckets: make([]CCMapBucket, count),
+		buckets: make([]ccMapBucket, count),
 		hasher:  hasher,
 	}
 	for i := 0; i < count; i++ {
-		ccmap.buckets[i] = CCMapBucket{
+		ccmap.buckets[i] = ccMapBucket{
 			mu:   sync.Mutex{},
 			data: make(map[string]interface{}),
 		}
@@ -46,7 +46,7 @@ func NewCCMap(count int) *CCMap {
 	return ccmap
 }
 
-func (p *CCMap) compute(key string, creator CCMapCreator, computer CCMapComputer) {
+func (p *ccMap) compute(key string, creator ccMapCreator, computer ccMapComputer) {
 	hash := p.hasher(key)
 	slot := hash % p.count
 	bucket := p.buckets[slot]
@@ -56,7 +56,7 @@ func (p *CCMap) compute(key string, creator CCMapCreator, computer CCMapComputer
 	defer bucket.mu.Unlock()
 }
 
-func (p *CCMapBucket) compute(key string, creator CCMapCreator, computer CCMapComputer) (err error) {
+func (p *ccMapBucket) compute(key string, creator ccMapCreator, computer ccMapComputer) (err error) {
 	var item interface{}
 	var ok bool
 

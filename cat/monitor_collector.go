@@ -23,7 +23,7 @@ func f642str(b float64) string {
 	return fmt.Sprintf("%f", b)
 }
 
-type MemStatsCollector struct {
+type memStatsCollector struct {
 	m runtime.MemStats
 
 	alloc,
@@ -32,15 +32,15 @@ type MemStatsCollector struct {
 	frees uint64
 }
 
-func (c *MemStatsCollector) GetId() string {
+func (c *memStatsCollector) GetId() string {
 	return "mem.runtime"
 }
 
-func (c *MemStatsCollector) GetDesc() string {
+func (c *memStatsCollector) GetDesc() string {
 	return "mem.runtime"
 }
 
-func (c *MemStatsCollector) GetProperties() map[string]string {
+func (c *memStatsCollector) GetProperties() map[string]string {
 	runtime.ReadMemStats(&c.m)
 
 	m := map[string]string{
@@ -73,20 +73,20 @@ func (c *MemStatsCollector) GetProperties() map[string]string {
 	return m
 }
 
-type CpuInfoCollector struct {
+type cpuInfoCollector struct {
 	lastTime    *cpu.TimesStat
 	lastCPUTime float64
 }
 
-func (c *CpuInfoCollector) GetId() string {
+func (c *cpuInfoCollector) GetId() string {
 	return "cpu"
 }
 
-func (c *CpuInfoCollector) GetDesc() string {
+func (c *cpuInfoCollector) GetDesc() string {
 	return "cpu"
 }
 
-func (c *CpuInfoCollector) GetProperties() map[string]string {
+func (c *cpuInfoCollector) GetProperties() map[string]string {
 
 	m := make(map[string]string)
 

@@ -6,19 +6,12 @@ import (
 	"../message"
 )
 
-type catMessageTree struct {
-}
-
-func Instance() *catMessageTree {
-	return &catMessageTree{}
-}
-
-func (t *catMessageTree) NewTransaction(mtype, name string) message.Transactor {
+func NewTransaction(mtype, name string) message.Transactor {
 	return message.NewTransaction(mtype, name, manager.flush)
 }
 
-func (t *catMessageTree) NewCompletedTransactionWithDuration(mtype, name string, duration time.Duration) {
-	var trans = t.NewTransaction(mtype, name)
+func NewCompletedTransactionWithDuration(mtype, name string, duration time.Duration) {
+	var trans = NewTransaction(mtype, name)
 	trans.SetDuration(duration)
 	if duration > 0 && duration < 60*time.Millisecond {
 		trans.SetTime(time.Now().Add(-duration))
@@ -27,12 +20,12 @@ func (t *catMessageTree) NewCompletedTransactionWithDuration(mtype, name string,
 	trans.Complete()
 }
 
-func (t *catMessageTree) NewEvent(mtype, name string) message.Messager {
+func NewEvent(mtype, name string) message.Messager {
 	return message.NewEvent(mtype, name, manager.flush)
 }
 
-func (t *catMessageTree) LogEvent(mtype, name string, args ...string) {
-	var e = t.NewEvent(mtype, name)
+func LogEvent(mtype, name string, args ...string) {
+	var e = NewEvent(mtype, name)
 	if len(args) > 0 {
 		e.SetStatus(args[0])
 	}
@@ -42,25 +35,25 @@ func (t *catMessageTree) LogEvent(mtype, name string, args ...string) {
 	e.Complete()
 }
 
-func (t *catMessageTree) LogError(err error, args ...string) {
+func LogError(err error, args ...string) {
 	var category = "CAT_ERROR"
 
 	if len(args) > 0 {
 		category = args[0]
 	}
 
-	t.LogErrorWithCategory(err, category)
+	LogErrorWithCategory(err, category)
 }
 
-func (t *catMessageTree) LogErrorWithCategory(err error, category string) {
-	var e = t.NewEvent("Error", category)
+func LogErrorWithCategory(err error, category string) {
+	var event = NewEvent("Error", category)
 	var buf = newStacktrace(2, err)
-	e.SetStatus(message.CatError)
-	e.SetData(buf.String())
-	e.Complete()
+	event.SetStatus(message.CatError)
+	event.SetData(buf.String())
+	event.Complete()
 }
 
-func (t *catMessageTree) LogMetricForCount(name string, args ...int) {
+func LogMetricForCount(name string, args ...int) {
 	var count int
 	if len(args) == 0 {
 		count = 1
@@ -70,10 +63,10 @@ func (t *catMessageTree) LogMetricForCount(name string, args ...int) {
 	aggregator.metric.AddCount(name, count)
 }
 
-func (t *catMessageTree) LogMetricForDuration(name string, duration time.Duration) {
+func LogMetricForDuration(name string, duration time.Duration) {
 	aggregator.metric.AddDuration(name, duration)
 }
 
-func (t *catMessageTree) NewMetricHelper(name string) *MetricHelper {
+func NewMetricHelper(name string) *catMetricHelper {
 	return newMetricHelper(name)
 }

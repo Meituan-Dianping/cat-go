@@ -29,7 +29,7 @@ func (m *catMonitor) Background() {
 	// Report monitor info at very beginning.
 	m.collectAndSend()
 
-	Instance().LogEvent(typeSystem, nameReboot)
+	LogEvent(typeSystem, nameReboot)
 
 	for m.isAlive {
 		var timer = sleep2NextMinute()
@@ -125,8 +125,8 @@ func (m *catMonitor) collectAndSend() {
 var monitor = catMonitor{
 	signalsMixin: makeSignalsMixedIn(signalMonitorExit),
 	collectors: []Collector{
-		&MemStatsCollector{},
-		&CpuInfoCollector{
+		&memStatsCollector{},
+		&cpuInfoCollector{
 			lastTime:    &cpu.TimesStat{},
 			lastCPUTime: 0,
 		},

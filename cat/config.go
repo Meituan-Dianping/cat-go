@@ -38,12 +38,11 @@ type XMLConfigServer struct {
 }
 
 var config = Config{
-	domain:   DefaultAppKey,
-	hostname: DefaultHostname,
-	env:      DefaultEnv,
-
-	ip:    DefaultIp,
-	ipHex: DefaultIpHex,
+	domain:   defaultAppKey,
+	hostname: defaultHostname,
+	env:      defaultEnv,
+	ip:       defaultIp,
+	ipHex:    defaultIpHex,
 
 	httpServerPort:      8080,
 	httpServerAddresses: []serverAddress{},
@@ -67,7 +66,7 @@ func loadConfigFromLocalFile(filename string) (data []byte, err error) {
 }
 
 func loadConfigFromRemoteServer() (data []byte, err error) {
-	url := fmt.Sprintf("http://%s/cat/s/launch?ip=%s", DefaultServer, config.ip)
+	url := fmt.Sprintf("http://%s/cat/s/launch?ip=%s", defaultServer, config.ip)
 	logger.Info("Getting config from %s", url)
 
 	res, err := http.Get(url)
@@ -88,7 +87,7 @@ func loadConfigFromRemoteServer() (data []byte, err error) {
 }
 
 func loadConfig() (data []byte, err error) {
-	if data, err = loadConfigFromLocalFile(DefaultXmlFile); err == nil {
+	if data, err = loadConfigFromLocalFile(defaultXmlFile); err == nil {
 		return
 	}
 	logger.Warning("Failed to load local config file, trying to get from remote server.")
@@ -135,14 +134,18 @@ func (config *Config) Init(domain string) (err error) {
 		logger.Warning("Error while getting local ip, using default ip: %s", config.ip)
 		return
 	} else {
+		// TODO ipHex
 		logger.Info("Local ip has been configured to %s", config.ip)
 	}
+
+	// TODO hostname
 
 	var data []byte
 	if data, err = loadConfig(); err != nil {
 		return
 	}
 
+	// Print config content to log file.
 	logger.Info("\n%s", data)
 
 	if err = parseXMLConfig(data); err != nil {

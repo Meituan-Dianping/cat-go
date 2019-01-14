@@ -69,7 +69,7 @@ func (p *eventAggregator) BackGround() {
 	var ticker = time.NewTicker(eventAggregatorInterval)
 	for p.isAlive {
 		select {
-		case signal := <- p.signals:
+		case signal := <-p.signals:
 			if signal == signalShutdown {
 				close(p.ch)
 				ticker.Stop()

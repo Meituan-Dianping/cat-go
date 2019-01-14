@@ -1,9 +1,5 @@
 package cat
 
-import (
-	"fmt"
-)
-
 type nameGetter interface {
 	GetName() string
 }
@@ -15,15 +11,15 @@ type signalsMixer interface {
 }
 
 type signalsMixin struct {
-	isAlive bool
-	signals chan int
+	isAlive    bool
+	signals    chan int
 	exitSignal int
 }
 
 func makeSignalsMixedIn(exitSignal int) signalsMixin {
 	return signalsMixin{
-		isAlive: true,
-		signals: make(chan int),
+		isAlive:    true,
+		signals:    make(chan int),
 		exitSignal: exitSignal,
 	}
 }
@@ -62,8 +58,6 @@ func (p *catScheduler) shutdownAndWaitGroup(items []signalsMixer) {
 		expectedSignals[v.getExitSignal()] = v.GetName()
 		count++
 	}
-
-	fmt.Println("signals send")
 
 	for signal := range p.signals {
 		if name, ok := expectedSignals[signal]; ok {

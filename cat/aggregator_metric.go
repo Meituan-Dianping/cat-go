@@ -28,7 +28,7 @@ func (p *metricAggregator) BackGround() {
 	var ticker = time.NewTicker(metricAggregatorInterval)
 	for p.isAlive {
 		select {
-		case signal := <- p.signals:
+		case signal := <-p.signals:
 			if signal == signalShutdown {
 				close(p.ch)
 				ticker.Stop()

@@ -15,16 +15,16 @@ const (
 )
 
 const ( // Declared default values.
-	DefaultAppKey   = "cat"
-	DefaultHostname = "GoUnknownHost"
-	DefaultEnv      = "dev"
+	defaultAppKey   = "cat"
+	defaultHostname = "GoUnknownHost"
+	defaultEnv      = "dev"
 
-	DefaultIp    = "127.0.0.1"
-	DefaultIpHex = "7f000001"
+	defaultIp    = "127.0.0.1"
+	defaultIpHex = "7f000001"
 
-	DefaultServer  = "cat.sankuai.com"
-	DefaultXmlFile = "/data/appdatas/cat/client.xml"
-	DefaultLogDir  = "/data/applogs/cat"
+	defaultServer  = "cat.sankuai.com"
+	defaultXmlFile = "/data/appdatas/cat/client.xml"
+	defaultLogDir  = "/data/applogs/cat"
 )
 
 const ( // Declared properties given by the router server.

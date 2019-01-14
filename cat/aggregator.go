@@ -10,13 +10,13 @@ import (
 const batchFlag = '@'
 const batchSplit = ';'
 
-type LocalAggregator struct {
+type catLocalAggregator struct {
 	event       *eventAggregator
 	transaction *transactionAggregator
 	metric      *metricAggregator
 }
 
-func (p *LocalAggregator) flush(m message.Messager) {
+func (p *catLocalAggregator) flush(m message.Messager) {
 	switch m := m.(type) {
 	case *message.Transaction:
 		sender.handleTransaction(m)
@@ -25,7 +25,7 @@ func (p *LocalAggregator) flush(m message.Messager) {
 	}
 }
 
-func (p *LocalAggregator) Background() {
+func (p *catLocalAggregator) Background() {
 	go p.event.BackGround()
 	go p.transaction.BackGround()
 	go p.metric.BackGround()
@@ -77,7 +77,7 @@ func computeDuration(durationInMillis int) int {
 	}
 }
 
-var aggregator = LocalAggregator{
+var aggregator = catLocalAggregator{
 	event:       newEventAggregator(),
 	transaction: newTransactionAggregator(),
 	metric:      newMetricAggregator(),
