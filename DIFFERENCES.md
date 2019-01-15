@@ -45,7 +45,7 @@ type Cat interface {
 }
 ```
 
-Were changed to:
+Have changed to:
 
 ```go
 type Cat interface {
@@ -75,7 +75,7 @@ type Transaction interface {
 }
 ```
 
-Were changed to:
+Have changed to:
 
 ```go
 type Message interface {
