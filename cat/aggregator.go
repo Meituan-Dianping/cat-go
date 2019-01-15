@@ -26,9 +26,9 @@ func (p *catLocalAggregator) flush(m message.Messager) {
 }
 
 func (p *catLocalAggregator) Background() {
-	go p.event.BackGround()
-	go p.transaction.BackGround()
-	go p.metric.BackGround()
+	go background(p.event)
+	go background(p.transaction)
+	go background(p.metric)
 }
 
 type Buf struct {

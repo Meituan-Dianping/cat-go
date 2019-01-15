@@ -4,19 +4,38 @@ import (
 	"time"
 )
 
+type metricHelper interface {
+	AddTag(key, val string) metricHelper
+	Count(int)
+	Duration(time.Duration)
+}
+
 type catMetricHelper struct {
 	name string
 	tags map[string]string
 }
 
-func newMetricHelper(name string) *catMetricHelper {
+type nullMetricHelper struct {
+}
+
+func (h *nullMetricHelper) AddTag(key, val string) metricHelper {
+	return h
+}
+
+func (h *nullMetricHelper) Count(count int) {
+}
+
+func (h *nullMetricHelper) Duration(duration time.Duration) {
+}
+
+func newMetricHelper(name string) metricHelper {
 	return &catMetricHelper{
 		name: name,
 		tags: make(map[string]string),
 	}
 }
 
-func (h *catMetricHelper) AddTag(key, val string) *catMetricHelper {
+func (h *catMetricHelper) AddTag(key, val string) metricHelper {
 	h.tags[key] = val
 	return h
 }

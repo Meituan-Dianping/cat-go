@@ -1,62 +1,93 @@
 package cat
 
-type nameGetter interface {
-	GetName() string
-}
-
-type signalsMixer interface {
-	nameGetter
-	shutdown()
-	getExitSignal() int
-}
-
-type signalsMixin struct {
+type scheduleMixin struct {
 	isAlive    bool
 	signals    chan int
 	exitSignal int
 }
 
-func makeSignalsMixedIn(exitSignal int) signalsMixin {
-	return signalsMixin{
-		isAlive:    true,
+type scheduleMixer interface {
+	GetName() string
+
+	handle(signal int)
+
+	process()
+	afterStart()
+	beforeStop()
+
+	getScheduleMixin() *scheduleMixin
+}
+
+func (p *scheduleMixin) handle(signal int) {
+	switch signal {
+	case signalShutdown:
+		p.isAlive = false
+	}
+}
+
+func (p *scheduleMixin) process() {
+	return
+}
+
+func (p *scheduleMixin) afterStart() {
+	return
+}
+
+func (p *scheduleMixin) beforeStop() {
+	return
+}
+
+func (p *scheduleMixin) getScheduleMixin() *scheduleMixin {
+	return p
+}
+
+func background(p scheduleMixer) {
+	mixin := p.getScheduleMixin()
+
+	mixin.isAlive = true
+	p.afterStart()
+
+	for mixin.isAlive {
+		p.process()
+	}
+
+	p.beforeStop()
+
+	close(mixin.signals)
+	scheduler.signals <- mixin.exitSignal
+}
+
+func makeScheduleMixedIn(exitSignal int) scheduleMixin {
+	return scheduleMixin{
+		isAlive:    false,
 		signals:    make(chan int),
 		exitSignal: exitSignal,
 	}
 }
 
-func (p *signalsMixin) stop() {
-	p.isAlive = false
-}
-
-func (p *signalsMixin) exit() {
-	close(p.signals)
-	scheduler.signals <- p.exitSignal
-}
-
-func (p *signalsMixin) getExitSignal() int {
-	return p.exitSignal
-}
-
-func (p *signalsMixin) shutdown() {
-	p.signals <- signalShutdown
-}
-
 type catScheduler struct {
-	signalsMixin
+	signals chan int
 }
 
 var scheduler = catScheduler{
-	makeSignalsMixedIn(signal0),
+	signals: make(chan int),
 }
 
-func (p *catScheduler) shutdownAndWaitGroup(items []signalsMixer) {
+func (p *catScheduler) shutdownAndWaitGroup(items []scheduleMixer) {
 	var expectedSignals = make(map[int]string)
 	var count = 0
 
 	for _, v := range items {
-		v.shutdown()
-		expectedSignals[v.getExitSignal()] = v.GetName()
-		count++
+		mixin := v.getScheduleMixin()
+		if mixin.isAlive {
+			mixin.signals <- signalShutdown
+			expectedSignals[mixin.exitSignal] = v.GetName()
+			count++
+		}
+	}
+
+	if count == 0 {
+		return
 	}
 
 	for signal := range p.signals {
@@ -73,12 +104,13 @@ func (p *catScheduler) shutdownAndWaitGroup(items []signalsMixer) {
 }
 
 func (p *catScheduler) shutdown() {
-	group1 := []signalsMixer{&router, &monitor}
-	group2 := []signalsMixer{aggregator.transaction, aggregator.event, aggregator.metric}
-	group3 := []signalsMixer{&sender}
+	group1 := []scheduleMixer{&router, &monitor}
+	group2 := []scheduleMixer{aggregator.transaction, aggregator.event, aggregator.metric}
+	group3 := []scheduleMixer{&sender}
+
+	disable()
 
 	logger.Info("Received shutdown request, scheduling...")
-	// TODO disable cat api.
 
 	p.shutdownAndWaitGroup(group1)
 	p.shutdownAndWaitGroup(group2)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -24,16 +25,18 @@ type routerConfigXML struct {
 }
 
 type catRouterConfig struct {
-	signalsMixin
+	scheduleMixin
 	sample  float64
 	routers []serverAddress
 	current *serverAddress
+	ticker *time.Ticker
 }
 
 var router = catRouterConfig{
-	signalsMixin: makeSignalsMixedIn(signalRouterExit),
-	sample:       1.0,
-	routers:      make([]serverAddress, 0),
+	scheduleMixin: makeScheduleMixedIn(signalRouterExit),
+	sample:        1.0,
+	routers:       make([]serverAddress, 0),
+	ticker: nil,
 }
 
 func (c *catRouterConfig) GetName() string {
@@ -76,36 +79,51 @@ func (c *catRouterConfig) updateRouterConfig() {
 	return
 }
 
-func (c *catRouterConfig) handle(signal int) int {
+func (c *catRouterConfig) handle(signal int) {
 	switch signal {
 	case signalResetConnection:
 		logger.Warning("Connection has been reset, reconnecting.")
 		c.current = nil
 		c.updateRouterConfig()
-	case signalShutdown:
-		return -1
+	default:
+		c.scheduleMixin.handle(signal)
 	}
-	return 0
 }
 
-func (c *catRouterConfig) Background() {
+func (c *catRouterConfig) afterStart() {
+	c.ticker = time.NewTicker(time.Second * 3)
 	c.updateRouterConfig()
+}
 
-	ticker := time.NewTicker(time.Minute * 3)
+func (c *catRouterConfig) beforeStop() {
+	c.ticker.Stop()
+}
 
-	for c.isAlive {
-		select {
-		case signal := <-c.signals:
-			if c.handle(signal) < 0 {
-				ticker.Stop()
-				c.stop()
-			}
-		case <-ticker.C:
-			c.updateRouterConfig()
-		}
+func (c *catRouterConfig) process() {
+	select {
+	case sig := <-c.signals:
+		c.handle(sig)
+	case <-c.ticker.C:
+		c.updateRouterConfig()
 	}
+}
 
-	c.exit()
+func (c *catRouterConfig) updateSample(v string) {
+	sample, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		logger.Warning("Sample should be a valid float, %s given", v)
+	} else if math.Abs(sample - c.sample) > 1e-9 {
+		c.sample = sample
+		logger.Info("Sample rate has been set to %f%%", c.sample*100)
+	}
+}
+
+func (c *catRouterConfig) updateBlock(v string) {
+	if v == "false" {
+		enable()
+	} else  {
+		disable()
+	}
 }
 
 func (c *catRouterConfig) parse(reader io.ReadCloser) {
@@ -122,16 +140,11 @@ func (c *catRouterConfig) parse(reader io.ReadCloser) {
 	for _, property := range t.Properties {
 		switch property.Id {
 		case propertySample:
-			c.sample, err = strconv.ParseFloat(property.Value, 32)
-			if err != nil {
-				logger.Warning("Sample should be a valid float, %s given", property.Value)
-			} else {
-				logger.Info("Sample rate has been set to %f%%", c.sample*100)
-			}
+			c.updateSample(property.Value)
 		case propertyRouters:
 			c.updateRouters(property.Value)
 		case propertyBlock:
-			// do nothing.
+			c.updateBlock(property.Value)
 		}
 	}
 }

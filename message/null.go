@@ -63,6 +63,9 @@ func (t *NullTransaction) GetDuration() time.Duration {
 func (t *NullTransaction) SetDuration(duration time.Duration) {
 }
 
+func (t *NullTransaction) SetDurationStart(duration time.Time) {
+}
+
 func (t *NullTransaction) NewEvent(mtype, name string) Messager {
 	return nullMessage
 }

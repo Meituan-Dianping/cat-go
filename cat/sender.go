@@ -20,7 +20,7 @@ func createHeader() *message.Header {
 }
 
 type catMessageSender struct {
-	signalsMixin
+	scheduleMixin
 
 	normal  chan message.Messager
 	high    chan message.Messager
@@ -32,104 +32,103 @@ type catMessageSender struct {
 	conn net.Conn
 }
 
-func (sender *catMessageSender) GetName() string {
+func (s *catMessageSender) GetName() string {
 	return "Sender"
 }
 
-func (sender *catMessageSender) send(m message.Messager) {
-	var buf = sender.buf
+func (s *catMessageSender) send(m message.Messager) {
+	var buf = s.buf
 	buf.Reset()
 
 	var header = createHeader()
-	if err := sender.encoder.EncodeHeader(buf, header); err != nil {
+	if err := s.encoder.EncodeHeader(buf, header); err != nil {
 		return
 	}
-	if err := sender.encoder.EncodeMessage(buf, m); err != nil {
+	if err := s.encoder.EncodeMessage(buf, m); err != nil {
 		return
 	}
 
 	var b = make([]byte, 4)
 	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
 
-	if _, err := sender.conn.Write(b); err != nil {
-		sender.conn = nil
+	if _, err := s.conn.Write(b); err != nil {
+		s.conn = nil
 		router.signals <- signalResetConnection
 		return
 	}
-	if _, err := sender.conn.Write(buf.Bytes()); err != nil {
-		sender.conn = nil
+	if _, err := s.conn.Write(buf.Bytes()); err != nil {
+		s.conn = nil
 		router.signals <- signalResetConnection
 		return
 	}
 	return
 }
 
-func (sender *catMessageSender) handleTransaction(trans *message.Transaction) {
+func (s *catMessageSender) handleTransaction(trans *message.Transaction) {
 	if trans.GetStatus() != SUCCESS {
 		select {
-		case sender.high <- trans:
+		case s.high <- trans:
 		default:
 			logger.Warning("High priority channel is full, transaction has been discarded.")
 		}
 	} else {
 		select {
-		case sender.normal <- trans:
+		case s.normal <- trans:
 		default:
 			logger.Warning("Normal priority channel is full, transaction has been discarded.")
 		}
 	}
 }
 
-func (sender *catMessageSender) handleEvent(event *message.Event) {
+func (s *catMessageSender) handleEvent(event *message.Event) {
 	select {
-	case sender.normal <- event:
+	case s.normal <- event:
 	default:
 		logger.Warning("Normal priority channel is full, event has been discarded.")
 	}
 }
 
-func (sender *catMessageSender) Background() {
-	for sender.isAlive {
-		if sender.conn == nil {
-			sender.conn = <-sender.chConn
-			logger.Info("Received a new connection: %s", sender.conn.RemoteAddr().String())
-		} else {
-			select {
-			case signal := <-sender.signals:
-				if signal == signalShutdown {
-					close(sender.chConn)
-					close(sender.high)
-					close(sender.normal)
-					sender.stop()
-				}
-			case conn := <-sender.chConn:
-				logger.Info("Received a new connection: %s", conn.RemoteAddr().String())
-				sender.conn = conn
-			case m := <-sender.high:
-				// logger.Debug("Receive a message [%s|%s] from high priority channel", m.GetType(), m.GetName())
-				sender.send(m)
-			case m := <-sender.normal:
-				// logger.Debug("Receive a message [%s|%s] from normal priority channel", m.GetType(), m.GetName())
-				sender.send(m)
-			}
-		}
+func (s *catMessageSender) beforeStop() {
+	close(s.chConn)
+	close(s.high)
+	close(s.normal)
+
+	for m := range s.high {
+		s.send(m)
+	}
+	for m := range s.normal {
+		s.send(m)
+	}
+}
+
+func (s *catMessageSender) process() {
+	if s.conn == nil {
+		s.conn = <- s.chConn
+		logger.Info("Received a new connection: %s", s.conn.RemoteAddr().String())
+		return
 	}
 
-	for m := range sender.high {
-		sender.send(m)
+	select {
+	case sig := <-s.signals:
+		s.handle(sig)
+	case conn := <-s.chConn:
+		logger.Info("Received a new connection: %s", conn.RemoteAddr().String())
+		s.conn = conn
+	case m := <-s.high:
+		// logger.Debug("Receive a message [%s|%s] from high priority channel", m.GetType(), m.GetName())
+		s.send(m)
+	case m := <-s.normal:
+		// logger.Debug("Receive a message [%s|%s] from normal priority channel", m.GetType(), m.GetName())
+		s.send(m)
 	}
-	for m := range sender.normal {
-		sender.send(m)
-	}
-	sender.exit()
 }
 
 var sender = catMessageSender{
-	signalsMixin: makeSignalsMixedIn(signalSenderExit),
-	normal:       make(chan message.Messager, normalPriorityQueueSize),
-	high:         make(chan message.Messager, highPriorityQueueSize),
-	chConn:       make(chan net.Conn),
-	encoder:      message.NewBinaryEncoder(),
-	buf:          bytes.NewBuffer([]byte{}),
-	conn:         nil,
+	scheduleMixin: makeScheduleMixedIn(signalSenderExit),
+	normal:        make(chan message.Messager, normalPriorityQueueSize),
+	high:          make(chan message.Messager, highPriorityQueueSize),
+	chConn:        make(chan net.Conn),
+	encoder:       message.NewBinaryEncoder(),
+	buf:           bytes.NewBuffer([]byte{}),
+	conn:          nil,
 }

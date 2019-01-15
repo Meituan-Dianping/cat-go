@@ -12,7 +12,7 @@ import (
 )
 
 type catMonitor struct {
-	signalsMixin
+	scheduleMixin
 	collectors []Collector
 }
 
@@ -25,27 +25,21 @@ func sleep2NextMinute() *time.Timer {
 	return time.NewTimer(time.Duration(delta) * time.Second)
 }
 
-func (m *catMonitor) Background() {
-	// Report monitor info at very beginning.
-	m.collectAndSend()
-
+func (m *catMonitor) afterStart() {
 	LogEvent(typeSystem, nameReboot)
+	m.collectAndSend()
+}
 
-	for m.isAlive {
-		var timer = sleep2NextMinute()
-		select {
-		case signal := <-m.signals:
-			if signal == signalShutdown {
-				timer.Stop()
-				m.stop()
-			}
-		case <-timer.C:
-			m.collectAndSend()
-		}
-		timer.Stop()
+func (m *catMonitor) process() {
+	timer := sleep2NextMinute()
+	defer timer.Stop()
+
+	select {
+	case sig := <-m.signals:
+		m.handle(sig)
+	case <-timer.C:
+		m.collectAndSend()
 	}
-
-	m.exit()
 }
 
 func (m *catMonitor) buildXml() *bytes.Buffer {
@@ -124,7 +118,7 @@ func (m *catMonitor) collectAndSend() {
 }
 
 var monitor = catMonitor{
-	signalsMixin: makeSignalsMixedIn(signalMonitorExit),
+	scheduleMixin: makeScheduleMixedIn(signalMonitorExit),
 	collectors: []Collector{
 		&memStatsCollector{},
 		&cpuInfoCollector{

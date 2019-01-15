@@ -22,12 +22,12 @@ func init() {
 func case1() {
 	t := cat.NewTransaction(TestType, "test")
 	defer t.Complete()
-	t.AddData("foo", "bar")
 
-	if rand.Int31n(1000) == 0 {
+	if rand.Int31n(100) == 0 {
 		t.SetStatus(cat.FAIL)
 	}
 
+	t.AddData("foo", "bar")
 	t.SetDurationStart(time.Now().Add(-5 * time.Second))
 	t.SetTime(time.Now().Add(-5 * time.Second))
 	t.SetDuration(time.Millisecond * 500)
@@ -46,17 +46,17 @@ func case3() {
 	e.Complete()
 	// way 2
 
-	if rand.Int31n(1000) == 0 {
-		cat.LogEvent(TestType, "event-2")
-	} else {
+	if rand.Int31n(100) == 0 {
 		cat.LogEvent(TestType, "event-2", cat.FAIL)
+	} else {
+		cat.LogEvent(TestType, "event-2")
 	}
 	cat.LogEvent(TestType, "event-3", cat.SUCCESS, "foobar")
 }
 
 // send error with backtrace
 func case4() {
-	if rand.Int31n(1000) == 0 {
+	if rand.Int31n(100) == 0 {
 		err := errors.New("error")
 		cat.LogError(err)
 	}
@@ -74,9 +74,9 @@ func case5() {
 func run(f func()) {
 	defer wg.Done()
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 100000000; i++ {
 		f()
-		time.Sleep(time.Microsecond * 10)
+		time.Sleep(time.Microsecond * 100)
 	}
 }
 
