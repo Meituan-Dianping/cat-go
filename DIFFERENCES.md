@@ -38,17 +38,21 @@ See [case1](./README.md#Example)
 The following APIs **do not** return pointer anymore.
 
 ```go
-func NewTransaction(mtype, name string) *message.Transaction
-func NewEvent(mtype, name string) *message.Event
-func NewMetricHelper(m_name string) *MetricHelper
+type Cat interface {
+    func NewTransaction(mtype, name string) *message.Transaction
+    func NewEvent(mtype, name string) *message.Event
+    func NewMetricHelper(m_name string) *MetricHelper
+}
 ```
 
 Were changed to:
 
 ```go
-func NewTransaction(mtype, name string) message.Transactor
-func NewEvent(mtype, name string) message.Messeger
-func NewMetricHelper(m_name string) MetricHelper
+type Cat interface {
+    func NewTransaction(mtype, name string) message.Transactor
+    func NewEvent(mtype, name string) message.Messeger
+    func NewMetricHelper(m_name string) MetricHelper
+}
 ```
 
 No influences if you have used `:=` or `var` to receive our returned value.
@@ -73,7 +77,7 @@ type Transaction interface {
 
 Were changed to:
 
-```
+```go
 type Message interface {
     SetTime(time time.Time)
     GetTime() time.Time
