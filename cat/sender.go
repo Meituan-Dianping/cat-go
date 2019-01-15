@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"time"
 )
 
 func createHeader() *message.Header {
@@ -51,12 +52,20 @@ func (s *catMessageSender) send(m message.Messager) {
 	var b = make([]byte, 4)
 	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
 
+	if err := s.conn.SetWriteDeadline(time.Now().Add(time.Second * 3)); err != nil {
+		logger.Warning("Error occurred while setting write deadline, connection has been dropped.")
+		s.conn = nil
+		router.signals <- signalResetConnection
+	}
+
 	if _, err := s.conn.Write(b); err != nil {
+		logger.Warning("Error occurred while writing data, connection has been dropped.")
 		s.conn = nil
 		router.signals <- signalResetConnection
 		return
 	}
 	if _, err := s.conn.Write(buf.Bytes()); err != nil {
+		logger.Warning("Error occurred while writing data, connection has been dropped.")
 		s.conn = nil
 		router.signals <- signalResetConnection
 		return
@@ -75,7 +84,7 @@ func (s *catMessageSender) handleTransaction(trans *message.Transaction) {
 		select {
 		case s.normal <- trans:
 		default:
-			logger.Warning("Normal priority channel is full, transaction has been discarded.")
+			// logger.Warning("Normal priority channel is full, transaction has been discarded.")
 		}
 	}
 }
@@ -84,7 +93,7 @@ func (s *catMessageSender) handleEvent(event *message.Event) {
 	select {
 	case s.normal <- event:
 	default:
-		logger.Warning("Normal priority channel is full, event has been discarded.")
+		// logger.Warning("Normal priority channel is full, event has been discarded.")
 	}
 }
 

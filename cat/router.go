@@ -91,7 +91,7 @@ func (c *catRouterConfig) handle(signal int) {
 }
 
 func (c *catRouterConfig) afterStart() {
-	c.ticker = time.NewTicker(time.Second * 3)
+	c.ticker = time.NewTicker(time.Minute * 3)
 	c.updateRouterConfig()
 }
 
@@ -178,11 +178,11 @@ func (c *catRouterConfig) updateRouters(router string) {
 		}
 
 		addr := fmt.Sprintf("%s:%d", server.host, server.port)
-		if conn, err := net.Dial("tcp", addr); err != nil {
-			logger.Info("Failed connecting to %s, retrying.", addr)
+		if conn, err := net.DialTimeout("tcp", addr, time.Second); err != nil {
+			logger.Info("Failed to connect to %s, retrying...", addr)
 		} else {
 			c.current = &server
-			logger.Info("Connect to %s.", addr)
+			logger.Info("Connected to %s.", addr)
 			sender.chConn <- conn
 			return
 		}
