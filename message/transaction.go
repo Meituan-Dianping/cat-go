@@ -6,7 +6,6 @@ import (
 )
 
 type TransactionGetter interface {
-	GetChildren() []Messager
 	GetDuration() time.Duration
 }
 
@@ -47,10 +46,6 @@ func (t *Transaction) Complete() {
 	}
 }
 
-func (t *Transaction) GetChildren() []Messager {
-	return t.children
-}
-
 func (t *Transaction) GetDuration() time.Duration {
 	return t.duration
 }
@@ -83,6 +78,10 @@ func (t *Transaction) AddChild(m Messager) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.children = append(t.children, m)
+}
+
+func (t *Transaction) GetChildren() []Messager {
+	return t.children
 }
 
 func NewTransaction(mtype, name string, flush Flush) *Transaction {

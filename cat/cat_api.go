@@ -93,7 +93,7 @@ func LogMetricForDuration(name string, duration time.Duration) {
 	aggregator.metric.AddDuration(name, duration)
 }
 
-func NewMetricHelper(name string) metricHelper {
+func NewMetricHelper(name string) MetricHelper {
 	if !IsEnabled() {
 		return &nullMetricHelper{}
 	}

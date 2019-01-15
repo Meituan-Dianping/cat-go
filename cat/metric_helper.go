@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-type metricHelper interface {
-	AddTag(key, val string) metricHelper
+type MetricHelper interface {
+	AddTag(key, val string) MetricHelper
 	Count(int)
 	Duration(time.Duration)
 }
@@ -18,7 +18,7 @@ type catMetricHelper struct {
 type nullMetricHelper struct {
 }
 
-func (h *nullMetricHelper) AddTag(key, val string) metricHelper {
+func (h *nullMetricHelper) AddTag(key, val string) MetricHelper {
 	return h
 }
 
@@ -28,14 +28,14 @@ func (h *nullMetricHelper) Count(count int) {
 func (h *nullMetricHelper) Duration(duration time.Duration) {
 }
 
-func newMetricHelper(name string) metricHelper {
+func newMetricHelper(name string) MetricHelper {
 	return &catMetricHelper{
 		name: name,
 		tags: make(map[string]string),
 	}
 }
 
-func (h *catMetricHelper) AddTag(key, val string) metricHelper {
+func (h *catMetricHelper) AddTag(key, val string) MetricHelper {
 	h.tags[key] = val
 	return h
 }
