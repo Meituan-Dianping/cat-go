@@ -41,12 +41,18 @@ func newBuf() *Buf {
 	}
 }
 
-func (b *Buf) WriteInt(i int) {
-	b.WriteString(strconv.Itoa(i))
+func (b *Buf) WriteInt(i int) (err error) {
+	if _, err = b.WriteString(strconv.Itoa(i)); err != nil {
+		return
+	}
+	return
 }
 
-func (b *Buf) WriteUInt64(i uint64) {
-	b.WriteString(strconv.FormatUint(i, 10))
+func (b *Buf) WriteUInt64(i uint64) (err error) {
+	if _, err = b.WriteString(strconv.FormatUint(i, 10)); err != nil {
+		return
+	}
+	return
 }
 
 func computeDuration(durationInMillis int) int {

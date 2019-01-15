@@ -14,9 +14,8 @@ type Config struct {
 	domain   string
 	hostname string
 	env      string
-
-	ip    string
-	ipHex string
+	ip       string
+	ipHex    string
 
 	httpServerPort      int
 	httpServerAddresses []serverAddress
@@ -57,7 +56,11 @@ func loadConfigFromLocalFile(filename string) (data []byte, err error) {
 		logger.Warning("Unable to open file `%s`.", filename)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Warning("Cannot close local client.xml file.")
+		}
+	}()
 
 	data, err = ioutil.ReadAll(file)
 	if err != nil {
@@ -151,6 +154,7 @@ func (config *Config) Init(domain string) (err error) {
 
 	var data []byte
 	if data, err = loadConfig(); err != nil {
+		logger.Error("Load config failed, cat has been disabled.")
 		return
 	}
 
@@ -158,6 +162,7 @@ func (config *Config) Init(domain string) (err error) {
 	logger.Info("\n%s", data)
 
 	if err = parseXMLConfig(data); err != nil {
+		logger.Error("Parse config failed, cat has been disabled.")
 		return
 	}
 

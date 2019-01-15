@@ -12,6 +12,7 @@ const (
 
 type Flush func(m Messager)
 
+//noinspection GoNameStartsWithPackageName
 type MessageGetter interface {
 	GetType() string
 	GetName() string

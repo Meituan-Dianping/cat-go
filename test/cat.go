@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -22,7 +23,11 @@ func case1() {
 	t := cat.NewTransaction(TestType, "test")
 	defer t.Complete()
 	t.AddData("foo", "bar")
-	t.SetStatus(cat.FAIL)
+
+	if rand.Int31n(1000) == 0 {
+		t.SetStatus(cat.FAIL)
+	}
+
 	t.SetDurationStart(time.Now().Add(-5 * time.Second))
 	t.SetTime(time.Now().Add(-5 * time.Second))
 	t.SetDuration(time.Millisecond * 500)
@@ -40,15 +45,21 @@ func case3() {
 	e := cat.NewEvent(TestType, "event-1")
 	e.Complete()
 	// way 2
-	cat.LogEvent(TestType, "event-2")
-	cat.LogEvent(TestType, "event-3", cat.FAIL)
-	cat.LogEvent(TestType, "event-4", cat.FAIL, "foobar")
+
+	if rand.Int31n(1000) == 0 {
+		cat.LogEvent(TestType, "event-2")
+	} else {
+		cat.LogEvent(TestType, "event-2", cat.FAIL)
+	}
+	cat.LogEvent(TestType, "event-3", cat.SUCCESS, "foobar")
 }
 
 // send error with backtrace
 func case4() {
-	err := errors.New("error")
-	cat.LogError(err)
+	if rand.Int31n(1000) == 0 {
+		err := errors.New("error")
+		cat.LogError(err)
+	}
 }
 
 // send metric
@@ -63,9 +74,9 @@ func case5() {
 func run(f func()) {
 	defer wg.Done()
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10000; i++ {
 		f()
-		time.Sleep(time.Millisecond)
+		time.Sleep(time.Microsecond * 10)
 	}
 }
 

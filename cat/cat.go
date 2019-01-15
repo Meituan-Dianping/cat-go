@@ -5,7 +5,10 @@ import (
 )
 
 func Init(domain string) {
-	config.Init(domain)
+	if err := config.Init(domain); err != nil {
+		// TODO disable cat.
+		return
+	}
 
 	go router.Background()
 	go monitor.Background()

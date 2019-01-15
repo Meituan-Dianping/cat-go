@@ -1,6 +1,7 @@
 package cat
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -15,6 +16,33 @@ type transactionData struct {
 	sum int64
 
 	durations map[int]int
+}
+
+//noinspection GoUnhandledErrorResult
+func encodeTransactionData(data *transactionData) *bytes.Buffer {
+	buf := newBuf()
+
+	buf.WriteRune(batchFlag)
+	buf.WriteInt(data.count)
+	buf.WriteRune(batchSplit)
+	buf.WriteInt(data.fail)
+	buf.WriteRune(batchSplit)
+	buf.WriteUInt64(uint64(data.sum))
+	buf.WriteRune(batchSplit)
+
+	i := 0
+	for k, v := range data.durations {
+		if i > 0 {
+			buf.WriteRune('|')
+		}
+		buf.WriteInt(k)
+		buf.WriteRune(',')
+		buf.WriteInt(v)
+		i++
+	}
+	buf.WriteRune(batchSplit)
+
+	return &buf.Buffer
 }
 
 func (p *transactionAggregator) GetName() string {
@@ -41,31 +69,11 @@ func (p *transactionAggregator) send(dataMap map[string]*transactionData) {
 	t := message.NewTransaction(typeSystem, nameTransactionAggregator, aggregator.flush)
 	defer t.Complete()
 
-	buf := newBuf()
-
 	for _, data := range dataMap {
-		event := t.NewEvent(data.mtype, data.name)
-		buf.WriteRune(batchFlag)
-		buf.WriteInt(data.count)
-		buf.WriteRune(batchSplit)
-		buf.WriteInt(data.fail)
-		buf.WriteRune(batchSplit)
-		buf.WriteUInt64(uint64(data.sum))
-		buf.WriteRune(batchSplit)
-
-		i := 0
-		for k, v := range data.durations {
-			if i > 0 {
-				buf.WriteRune('|')
-			}
-			buf.WriteInt(k)
-			buf.WriteRune(',')
-			buf.WriteInt(v)
-			i++
-		}
-		buf.WriteRune(batchSplit)
-
-		event.SetData(buf.String())
+		trans := message.NewTransaction(data.mtype, data.name, nil)
+		trans.SetData(encodeTransactionData(data).String())
+		trans.Complete()
+		t.AddChild(trans)
 	}
 }
 
@@ -123,7 +131,7 @@ func (data *transactionData) add(transaction *message.Transaction) {
 		data.fail++
 	}
 
-	millis := transaction.GetDuration().Nanoseconds() / time.Millisecond.Nanoseconds()
+	millis := duration2Millis(transaction.GetDuration())
 	data.sum += millis
 
 	duration := computeDuration(int(millis))

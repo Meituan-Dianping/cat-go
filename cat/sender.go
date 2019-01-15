@@ -36,21 +36,29 @@ func (sender *catMessageSender) GetName() string {
 	return "Sender"
 }
 
-func (sender *catMessageSender) send(m message.Messager) (err error) {
+func (sender *catMessageSender) send(m message.Messager) {
 	var buf = sender.buf
 	buf.Reset()
 
 	var header = createHeader()
-	sender.encoder.EncodeHeader(buf, header)
-	sender.encoder.EncodeMessage(buf, m)
+	if err := sender.encoder.EncodeHeader(buf, header); err != nil {
+		return
+	}
+	if err := sender.encoder.EncodeMessage(buf, m); err != nil {
+		return
+	}
 
 	var b = make([]byte, 4)
 	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
 
-	if _, err = sender.conn.Write(b); err != nil {
+	if _, err := sender.conn.Write(b); err != nil {
+		sender.conn = nil
+		router.signals <- signalResetConnection
 		return
 	}
-	if _, err = sender.conn.Write(buf.Bytes()); err != nil {
+	if _, err := sender.conn.Write(buf.Bytes()); err != nil {
+		sender.conn = nil
+		router.signals <- signalResetConnection
 		return
 	}
 	return

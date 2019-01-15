@@ -130,6 +130,8 @@ func (c *catRouterConfig) parse(reader io.ReadCloser) {
 			}
 		case propertyRouters:
 			c.updateRouters(property.Value)
+		case propertyBlock:
+			// do nothing.
 		}
 	}
 }

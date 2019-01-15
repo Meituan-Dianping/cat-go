@@ -37,15 +37,9 @@ func (p *eventAggregator) send(dataMap map[string]*eventData) {
 	t := message.NewTransaction(typeSystem, nameEventAggregator, aggregator.flush)
 	defer t.Complete()
 
-	buf := newBuf()
-
 	for _, data := range dataMap {
 		event := t.NewEvent(data.mtype, data.name)
-		buf.WriteRune(batchFlag)
-		buf.WriteInt(data.count)
-		buf.WriteRune(batchSplit)
-		buf.WriteInt(data.fail)
-		event.SetData(buf.String())
+		event.SetData(fmt.Sprintf("%c%d%c%d", batchFlag, data.count, batchSplit, data.fail))
 	}
 }
 

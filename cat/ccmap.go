@@ -46,14 +46,15 @@ func newCCMap(count int) *ccMap {
 	return ccmap
 }
 
-func (p *ccMap) compute(key string, creator ccMapCreator, computer ccMapComputer) {
+func (p *ccMap) compute(key string, creator ccMapCreator, computer ccMapComputer) (err error) {
 	hash := p.hasher(key)
 	slot := hash % p.count
 	bucket := p.buckets[slot]
 
 	bucket.mu.Lock()
-	bucket.compute(key, creator, computer)
 	defer bucket.mu.Unlock()
+
+	return bucket.compute(key, creator, computer)
 }
 
 func (p *ccMapBucket) compute(key string, creator ccMapCreator, computer ccMapComputer) (err error) {

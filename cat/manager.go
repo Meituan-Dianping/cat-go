@@ -9,9 +9,9 @@ import (
 )
 
 type catMessageManager struct {
-	index  uint32
-	offset uint32
-	hour int
+	index           uint32
+	offset          uint32
+	hour            int
 	messageIdPrefix string
 }
 
@@ -28,7 +28,7 @@ func (p *catMessageManager) flush(m message.Messager) {
 	case *message.Transaction:
 		if m.Status != SUCCESS {
 			sender.handleTransaction(m)
-		} else if p.isSample(router.sample) {
+		} else if p.hitSample(router.sample) {
 			sender.handleTransaction(m)
 		} else {
 			aggregator.transaction.Put(m)
@@ -44,7 +44,7 @@ func (p *catMessageManager) flush(m message.Messager) {
 	}
 }
 
-func (p *catMessageManager) isSample(sampleRate float64) bool {
+func (p *catMessageManager) hitSample(sampleRate float64) bool {
 	if sampleRate > 1.0 {
 		return true
 	} else if sampleRate < 1e-9 {
@@ -82,5 +82,5 @@ func (p *catMessageManager) nextId() string {
 var manager = catMessageManager{
 	index:  0,
 	offset: 0,
-	hour: 0,
+	hour:   0,
 }
