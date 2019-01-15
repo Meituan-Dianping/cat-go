@@ -2,11 +2,8 @@ package cat
 
 import (
 	"encoding/xml"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 )
 
@@ -69,37 +66,11 @@ func loadConfigFromLocalFile(filename string) (data []byte, err error) {
 	return
 }
 
-func loadConfigFromRemoteServer() (data []byte, err error) {
-	url := fmt.Sprintf("http://%s/cat/s/launch?ip=%s", defaultServer, config.ip)
-	logger.Info("Getting config from %s", url)
-
-	res, err := http.Get(url)
-	if err != nil {
-		logger.Warning("Error occurred while flush http request.")
-		return
-	}
-
-	if res.StatusCode != 200 {
-		err = errors.New(fmt.Sprintf("Remote server return none 200 status code: %d", res.StatusCode))
-	}
-
-	data, err = ioutil.ReadAll(res.Body)
-	if err != nil {
-		logger.Warning("Unable to read content from http response")
-	}
-	return
-}
-
 func loadConfig() (data []byte, err error) {
-	if data, err = loadConfigFromLocalFile(defaultXmlFile); err == nil {
+	if data, err = loadConfigFromLocalFile(defaultXmlFile); err != nil {
+		logger.Error("Failed to load local config file.")
 		return
 	}
-	logger.Warning("Failed to load local config file, trying to get from remote server.")
-
-	if data, err = loadConfigFromRemoteServer(); err == nil {
-		return
-	}
-	logger.Warning("Failed to load config from remote server.")
 	return
 }
 
@@ -154,7 +125,6 @@ func (config *Config) Init(domain string) (err error) {
 
 	var data []byte
 	if data, err = loadConfig(); err != nil {
-		logger.Error("Load config failed, cat has been disabled.")
 		return
 	}
 
@@ -162,7 +132,6 @@ func (config *Config) Init(domain string) (err error) {
 	logger.Info("\n%s", data)
 
 	if err = parseXMLConfig(data); err != nil {
-		logger.Error("Parse config failed, cat has been disabled.")
 		return
 	}
 
