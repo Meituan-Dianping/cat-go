@@ -1,11 +1,12 @@
 package cat
 
 import (
-	"../message"
 	"bytes"
 	"encoding/binary"
 	"net"
 	"time"
+
+	"github.com/Meituan-Dianping/cat-go/message"
 )
 
 func createHeader() *message.Header {
