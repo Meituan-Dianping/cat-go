@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"../message"
+	"github.com/Meituan-Dianping/cat-go/message"
 )
 
 type metricData struct {
