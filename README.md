@@ -1,6 +1,6 @@
-# Gocat.v2
+# Cat client for golang (v2)
 
-`gocat.v2` is the client sdk for the [CAT(Central Application Tracking)](https://github.com/dianping/cat) for the Go programming language. 
+`gocat.v2` is the client sdk for the [CAT(Central Application Tracking)](https://github.com/dianping/cat) for the Go programming language.
 
 See the [**DIFFERENCES**](DIFFERENCES.md) between [gocat](https://github.com/dianping/cat/tree/master/lib) and `gocat.v2`
 
@@ -10,14 +10,14 @@ The current latest version is 2.0.0
 
 Please check [**CHANGELOG**](./CHANGELOG.md) for information about our latest updates to the sdk.
 
-## Installation 
+## Installation
 
 You can simply get started with our sdk by using the following command:
 ```
 go get github.com/dianping/gocat.v2
 ```
 
-## Quickstart 
+## Quickstart
 
 This example shows how you can send tracking data to CAT using `gocat.v2`.
 
@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"./cat" 
+	"./cat"
 )
 
 const TestType = "foo"
