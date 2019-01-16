@@ -3,22 +3,21 @@ package cat
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"time"
 
 	"github.com/Meituan-Dianping/cat-go/message"
 )
 
-func createHeader() *message.Header {
-	return &message.Header{
-		Domain:   config.domain,
-		Hostname: config.hostname,
-		Ip:       config.ip,
+var header = &message.Header{
+	Domain:   config.domain,
+	Hostname: config.hostname,
+	Ip:       config.ip,
 
-		MessageId:       manager.nextId(),
-		ParentMessageId: "",
-		RootMessageId:   "",
-	}
+	MessageId:       "",
+	ParentMessageId: "",
+	RootMessageId:   "",
 }
 
 type catMessageSender struct {
@@ -42,13 +41,25 @@ func (s *catMessageSender) send(m message.Messager) {
 	var buf = s.buf
 	buf.Reset()
 
-	var header = createHeader()
+	if tree, ok := m.(*catMessageTree); ok {
+		header.MessageId = tree.messageId
+		header.MessageId = tree.parentMessageId
+		header.MessageId = tree.rootMessageId
+		m = &tree.Transaction
+	} else {
+		header.MessageId = manager.nextId()
+		header.MessageId = ""
+		header.MessageId = ""
+	}
+
 	if err := s.encoder.EncodeHeader(buf, header); err != nil {
 		return
 	}
 	if err := s.encoder.EncodeMessage(buf, m); err != nil {
 		return
 	}
+
+	fmt.Println("send")
 
 	var b = make([]byte, 4)
 	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
@@ -74,6 +85,22 @@ func (s *catMessageSender) send(m message.Messager) {
 	return
 }
 
+func (s *catMessageSender) handleMessageTree(tree *catMessageTree, hasProblem bool) {
+	if hasProblem {
+		select {
+		case s.high <- tree:
+		default:
+			logger.Warning("High priority channel is full, transaction has been discarded.")
+		}
+	} else {
+		select {
+		case s.normal <- tree:
+		default:
+			logger.Warning("Normal priority channel is full, transaction has been discarded.")
+		}
+	}
+}
+
 func (s *catMessageSender) handleTransaction(trans *message.Transaction) {
 	if trans.GetStatus() != SUCCESS {
 		select {
@@ -85,7 +112,7 @@ func (s *catMessageSender) handleTransaction(trans *message.Transaction) {
 		select {
 		case s.normal <- trans:
 		default:
-			// logger.Warning("Normal priority channel is full, transaction has been discarded.")
+			logger.Warning("Normal priority channel is full, transaction has been discarded.")
 		}
 	}
 }

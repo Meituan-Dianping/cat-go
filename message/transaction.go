@@ -2,6 +2,7 @@ package message
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -23,7 +24,7 @@ type Transaction struct {
 
 	children []Messager
 
-	isCompleted bool
+	isCompleted uint32
 
 	mu sync.Mutex
 
@@ -31,11 +32,16 @@ type Transaction struct {
 	durationStart time.Time
 }
 
+func (t *Transaction) IsCompleted() bool {
+	return atomic.LoadUint32(&t.isCompleted) == 1
+}
+
 func (t *Transaction) Complete() {
-	if t.isCompleted {
+	if t.IsCompleted() {
+		return
+	} else if atomic.SwapUint32(&t.isCompleted, 1) == 1 {
 		return
 	}
-	t.isCompleted = true
 
 	if t.duration == 0 {
 		t.duration = time.Now().Sub(t.Message.timestamp)
@@ -53,6 +59,7 @@ func (t *Transaction) GetDuration() time.Duration {
 func (t *Transaction) SetDuration(duration time.Duration) {
 	t.duration = duration
 }
+
 func (t *Transaction) SetDurationStart(time time.Time) {
 	t.durationStart = time
 }
@@ -88,7 +95,7 @@ func NewTransaction(mtype, name string, flush Flush) *Transaction {
 	return &Transaction{
 		Message:       NewMessage(mtype, name, flush),
 		children:      make([]Messager, 0),
-		isCompleted:   false,
+		isCompleted:   0,
 		mu:            sync.Mutex{},
 		duration:      0,
 		durationStart: time.Time{},

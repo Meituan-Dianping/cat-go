@@ -2,6 +2,7 @@ package message
 
 import (
 	"bytes"
+	"fmt"
 )
 
 type Encoder interface {
@@ -27,6 +28,7 @@ func encodeMessage(encoder Encoder, buf *bytes.Buffer, message Messager) (err er
 	case *Metric:
 		return encoder.EncodeMetric(buf, m)
 	default:
+		fmt.Println("unsupported type")
 		// TODO unsupported message type.
 		return
 	}

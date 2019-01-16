@@ -82,6 +82,25 @@ func case5() {
 	cat.NewMetricHelper("metric-5").Duration(time.Second)
 }
 
+func case6() {
+	tree := cat.NewMessageTree()
+	defer tree.Complete()
+
+	go func() {
+		t := tree.NewTransaction("tree-foo", "bar-1")
+		time.Sleep(time.Second)
+		defer t.Complete()
+	}()
+
+	go func() {
+		t := tree.NewTransaction("tree-foo", "bar-2")
+		time.Sleep(time.Second * 2)
+		defer t.Complete()
+	}()
+
+	tree.Wait()
+}
+
 func run(f func()) {
 	defer wg.Done()
 
@@ -97,13 +116,17 @@ func start(f func()) {
 }
 
 func main() {
-	start(case1)
-	start(case2)
-	start(case3)
-	start(case4)
-	start(case5)
+	// start(case1)
+	// start(case2)
+	// start(case3)
+	// start(case4)
+	// start(case5)
+
+	case1()
+	case2()
+	case6()
 
 	wg.Wait()
 
-	cat.Shutdown()
+	time.Sleep(time.Second * 10)
 }
