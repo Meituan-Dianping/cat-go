@@ -14,7 +14,7 @@ Please check [**CHANGELOG**](./CHANGELOG.md) for information about our latest up
 
 You can simply get started with our sdk by using the following command:
 ```
-go get github.com/dianping/gocat.v2
+go get github.com/Meituan-Dianping/cat-go
 ```
 
 ## Quickstart
@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"./cat"
+	"github.com/Meituan-Dianping/cat-go/cat"
 )
 
 const TestType = "foo"

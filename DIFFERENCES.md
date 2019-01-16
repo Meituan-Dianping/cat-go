@@ -19,11 +19,11 @@ cat := gocat.Instance()
 cat.LogEvent("foo", "bar")
 ```
 
-while you can achieve the same goal in `gocat.v2` like this:
+It is equal to the following codes in `gocat.v2`
 
 ```go
 import (
-    cat "gocat.v2"
+	"github.com/Meituan-Dianping/cat-go/cat"
 )
 
 cat.LogEvent("foo", "bar")
@@ -33,7 +33,7 @@ cat.LogEvent("foo", "bar")
 
 See [case1](./README.md#Example)
 
-## API return value
+## API return value changes
 
 The following APIs **do not** return pointer anymore.
 
@@ -57,7 +57,7 @@ type Cat interface {
 
 No influences if you have used `:=` or `var` to receive our returned value.
 
-## API params
+## API params changes
 
 The following APIs requires **time.Time** or **time.Duration** as parameter, which used to be `int64` (timestampInNanosecond).
 
