@@ -178,7 +178,7 @@ func (c *catRouterConfig) updateRouters(router string) {
 		}
 
 		addr := fmt.Sprintf("%s:%d", server.host, server.port)
-		if conn, err := net.DialTimeout("tcp", addr, time.Second); err != nil {
+		if conn, err := net.DialTimeout("tcp", "0.0.0.0:2280", time.Second); err != nil {
 			logger.Info("Failed to connect to %s, retrying...", addr)
 		} else {
 			c.current = &server

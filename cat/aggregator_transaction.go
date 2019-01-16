@@ -129,6 +129,7 @@ func (p *transactionAggregator) Put(t *message.Transaction) {
 
 	select {
 	case p.ch <- t:
+		return
 	default:
 		logger.Warning("Transaction aggregator is full")
 	}

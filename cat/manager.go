@@ -23,15 +23,44 @@ func (p *catMessageManager) sendEvent(t *message.Event) {
 	sender.handleEvent(t)
 }
 
+func (p *catMessageManager) analyzeMessageTree(tree *catMessageTree) {
+	for _, m := range tree.GetChildren() {
+		switch m := m.(type) {
+		case *message.Transaction:
+			p.analyzeTransaction(m)
+		case *message.Event:
+			aggregator.event.Put(m)
+		}
+	}
+}
+
+func (p *catMessageManager) analyzeTransaction(trans *message.Transaction) {
+	for _, m := range trans.GetChildren() {
+		switch m := m.(type) {
+		case *message.Event:
+			aggregator.event.Put(m)
+		}
+	}
+	aggregator.transaction.Put(trans)
+}
+
 func (p *catMessageManager) flush(m message.Messager) {
 	switch m := m.(type) {
+	case *catMessageTree:
+		if m.hasProblem() {
+			sender.handleMessageTree(m, true)
+		} else if p.hitSample(router.sample) {
+			sender.handleMessageTree(m, false)
+		} else {
+			p.analyzeMessageTree(m)
+		}
 	case *message.Transaction:
 		if m.Status != SUCCESS {
 			sender.handleTransaction(m)
 		} else if p.hitSample(router.sample) {
 			sender.handleTransaction(m)
 		} else {
-			aggregator.transaction.Put(m)
+			p.analyzeTransaction(m)
 		}
 	case *message.Event:
 		if m.Status != SUCCESS {
