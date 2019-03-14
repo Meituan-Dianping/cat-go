@@ -6,4 +6,6 @@
 
 #### 2.0.0
 
-- which is our first release.
+- First release
+
+#### 2.0.3

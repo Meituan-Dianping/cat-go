@@ -2,8 +2,10 @@ package cat
 
 import (
 	"fmt"
+	"math"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/Meituan-Dianping/cat-go/message"
 )
@@ -13,35 +15,8 @@ type catMessageManager struct {
 	offset          uint32
 	hour            int
 	messageIdPrefix string
-}
 
-func (p *catMessageManager) sendTransaction(t *message.Transaction) {
-	sender.handleTransaction(t)
-}
-
-func (p *catMessageManager) sendEvent(t *message.Event) {
-	sender.handleEvent(t)
-}
-
-func (p *catMessageManager) flush(m message.Messager) {
-	switch m := m.(type) {
-	case *message.Transaction:
-		if m.Status != SUCCESS {
-			sender.handleTransaction(m)
-		} else if p.hitSample(router.sample) {
-			sender.handleTransaction(m)
-		} else {
-			aggregator.transaction.Put(m)
-		}
-	case *message.Event:
-		if m.Status != SUCCESS {
-			sender.handleEvent(m)
-		} else {
-			aggregator.event.Put(m)
-		}
-	default:
-		logger.Warning("Unrecognized message type.")
-	}
+	flush message.Flush
 }
 
 func (p *catMessageManager) hitSample(sampleRate float64) bool {
@@ -83,4 +58,38 @@ var manager = catMessageManager{
 	index:  0,
 	offset: 0,
 	hour:   0,
+}
+
+func atomicLoadFloat64(f *float64) float64 {
+	unsafeAddr := (*uint64)(unsafe.Pointer(f))
+	atomic.LoadUint64(unsafeAddr)
+	return math.Float64frombits(*unsafeAddr)
+}
+
+func atomicStoreFloat64(f *float64, v float64) {
+	unsafeAddr := (*uint64)(unsafe.Pointer(f))
+	atomic.StoreUint64(unsafeAddr, math.Float64bits(v))
+}
+
+func init() {
+	manager.flush = func(m message.Messager) {
+		switch m := m.(type) {
+		case *message.Transaction:
+			if m.Status != SUCCESS {
+				sender.handleTransaction(m)
+			} else if manager.hitSample(atomicLoadFloat64(&router.sample)) {
+				sender.handleTransaction(m)
+			} else {
+				aggregator.transaction.Put(m)
+			}
+		case *message.Event:
+			if m.Status != SUCCESS {
+				sender.handleEvent(m)
+			} else {
+				aggregator.event.Put(m)
+			}
+		default:
+			logger.Warning("Unrecognized message type.")
+		}
+	}
 }

@@ -3,6 +3,7 @@ package cat
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -27,20 +28,31 @@ func createLogger() *Logger {
 	}
 }
 
-func openLoggerFile(time time.Time) (*os.File, error) {
+func openLoggerFile(dirPath string, time time.Time) (*os.File, error) {
 	year, month, day := time.Date()
-	filename := fmt.Sprintf("%s/cat_%d_%02d_%02d.log", defaultLogDir, year, month, day)
+	filename := fmt.Sprintf("%s/gocat_%d_%02d_%02d.log", dirPath, year, month, day)
 	return os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 }
 
 func getWriterByTime(time time.Time) io.Writer {
-	if file, err := openLoggerFile(time); err != nil {
-		log.Fatalf("Cannot open log file: %s, logs will be redirected to stdout", file.Name())
-		return os.Stdout
-	} else {
-		log.Printf("Log has been redirected to the file: %s", file.Name())
+	var file *os.File
+	var err error
+
+	file, err = openLoggerFile(defaultLogDir, time)
+	if err == nil {
+		log.Printf("Logs has been redirected to the file: %s", file.Name())
 		return file
 	}
+	log.Printf("Cannot open file in: %s", defaultLogDir)
+
+	file, err = openLoggerFile(tmpLogDir, time)
+	if err == nil {
+		log.Printf("Logs has been redirected to the file: %s", file.Name())
+		return file
+	}
+	log.Printf("Cannot open file in: %s, logger will be disabled.", tmpLogDir)
+
+	return ioutil.Discard
 }
 
 func (l *Logger) switchLogFile(time time.Time) {

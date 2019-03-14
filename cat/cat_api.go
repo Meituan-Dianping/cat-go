@@ -8,7 +8,7 @@ import (
 
 func NewTransaction(mtype, name string) message.Transactor {
 	if !IsEnabled() {
-		return &message.NullTransaction{}
+		return message.NullTransaction
 	}
 	return message.NewTransaction(mtype, name, manager.flush)
 }
@@ -20,7 +20,7 @@ func NewCompletedTransactionWithDuration(mtype, name string, duration time.Durat
 
 	var trans = NewTransaction(mtype, name)
 	trans.SetDuration(duration)
-	if duration > 0 && duration < 60*time.Millisecond {
+	if duration > 0 && duration < 60*time.Second {
 		trans.SetTime(time.Now().Add(-duration))
 	}
 	trans.SetStatus(message.CatSuccess)
@@ -29,7 +29,7 @@ func NewCompletedTransactionWithDuration(mtype, name string, duration time.Durat
 
 func NewEvent(mtype, name string) message.Messager {
 	if !IsEnabled() {
-		return &message.NullMessage{}
+		return message.NullMessage
 	}
 	return message.NewEvent(mtype, name, manager.flush)
 }
