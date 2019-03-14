@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	GoCatVersion = "2.0.0"
+	GoCatVersion = "2.0.2"
 )
 
 const (
@@ -14,7 +14,13 @@ const (
 	FAIL    = "fail"
 )
 
+const (
+	routerPath = "/cat/s/router"
+)
+
 const ( // Declared default values.
+	localhost = "127.0.0.1"
+
 	defaultAppKey   = "cat"
 	defaultHostname = "GoUnknownHost"
 	defaultEnv      = "dev"
@@ -24,6 +30,7 @@ const ( // Declared default values.
 
 	defaultXmlFile = "/data/appdatas/cat/client.xml"
 	defaultLogDir  = "/data/applogs/cat"
+	tmpLogDir      = "/tmp"
 )
 
 const ( // Declared properties given by the router server.
@@ -43,6 +50,15 @@ const (
 	transactionAggregatorInterval = time.Second * 3
 	eventAggregatorInterval       = time.Second * 3
 	metricAggregatorInterval      = time.Second * 3
+
+	defaultRouterInterval = time.Minute * 3
+	defaultWriteDeadline  = time.Second
+
+	senderBlockingTimeoutTime = time.Second * 3
+)
+
+var (
+	routerInterval = defaultRouterInterval
 )
 
 const ( // Declared a series of reserved type and names.

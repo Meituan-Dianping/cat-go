@@ -53,7 +53,7 @@ type transactionAggregator struct {
 	scheduleMixin
 	ch      chan *message.Transaction
 	dataMap map[string]*transactionData
-	ticker *time.Ticker
+	ticker  *time.Ticker
 }
 
 func (p *transactionAggregator) collectAndSend() {
