@@ -20,7 +20,7 @@ func init() {
 
 // send transaction
 func case1() {
-	t := cat.NewTransaction(TestType, "test")
+	t := cat.NewTransaction(TestType, "script")
 	defer t.Complete()
 
 	if rand.Int31n(100) == 0 {

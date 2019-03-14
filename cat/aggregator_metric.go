@@ -18,7 +18,7 @@ type metricAggregator struct {
 	scheduleMixin
 	ch      chan *metricData
 	dataMap map[string]*metricData
-	ticker *time.Ticker
+	ticker  *time.Ticker
 }
 
 func (p *metricAggregator) GetName() string {

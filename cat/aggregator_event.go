@@ -17,7 +17,7 @@ type eventAggregator struct {
 	scheduleMixin
 	ch      chan *message.Event
 	dataMap map[string]*eventData
-	ticker *time.Ticker
+	ticker  *time.Ticker
 }
 
 func (p *eventAggregator) GetName() string {
@@ -93,6 +93,7 @@ func (p *eventAggregator) Put(event *message.Event) {
 
 	select {
 	case p.ch <- event:
+		return
 	default:
 		logger.Warning("Event aggregator is full")
 	}

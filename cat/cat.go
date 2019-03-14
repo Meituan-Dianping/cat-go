@@ -5,11 +5,18 @@ import (
 	"sync/atomic"
 )
 
-var isEnabled uint32 = 0
+var enabled uint32 = 0
+
+var started uint32 = 0
 
 func Init(domain string) {
 	if err := config.Init(domain); err != nil {
 		logger.Warning("Cat initialize failed.")
+		return
+	}
+
+	if !atomic.CompareAndSwapUint32(&started, 0, 1) {
+		// Cat goroutines has already been started.
 		return
 	}
 	enable()
@@ -21,23 +28,27 @@ func Init(domain string) {
 }
 
 func enable() {
-	if atomic.SwapUint32(&isEnabled, 1) == 0 {
+	if atomic.SwapUint32(&enabled, 1) == 0 {
 		logger.Info("Cat has been enabled.")
 	}
 }
 
 func disable() {
-	if atomic.SwapUint32(&isEnabled, 0) == 1 {
+	if atomic.SwapUint32(&enabled, 0) == 1 {
 		logger.Info("Cat has been disabled.")
 	}
 }
 
 func IsEnabled() bool {
-	return atomic.LoadUint32(&isEnabled) > 0
+	return atomic.LoadUint32(&enabled) > 0
 }
 
 func Shutdown() {
 	scheduler.shutdown()
+}
+
+func Wait() {
+	// outdated
 }
 
 func DebugOn() {

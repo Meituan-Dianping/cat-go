@@ -15,9 +15,7 @@ type Config struct {
 	ipHex    string
 
 	httpServerPort      int
-	httpServerAddresses []serverAddress
-
-	serverAddress []serverAddress
+	httpServerAddresses serverAddresses
 }
 
 type XMLConfig struct {
@@ -43,8 +41,6 @@ var config = Config{
 
 	httpServerPort:      8080,
 	httpServerAddresses: []serverAddress{},
-
-	serverAddress: []serverAddress{},
 }
 
 func loadConfigFromLocalFile(filename string) (data []byte, err error) {
@@ -88,7 +84,7 @@ func parseXMLConfig(data []byte) (err error) {
 		})
 	}
 
-	logger.Info("Server addresses: %s", config.httpServerAddresses)
+	logger.Info("Server addresses: %s", config.httpServerAddresses.String())
 	return
 }
 

@@ -69,10 +69,6 @@ type catScheduler struct {
 	signals chan int
 }
 
-var scheduler = catScheduler{
-	signals: make(chan int),
-}
-
 func (p *catScheduler) shutdownAndWaitGroup(items []scheduleMixer) {
 	var expectedSignals = make(map[int]string)
 	var count = 0
@@ -117,4 +113,8 @@ func (p *catScheduler) shutdown() {
 	p.shutdownAndWaitGroup(group3)
 
 	logger.Info("All systems down.")
+}
+
+var scheduler = catScheduler{
+	signals: make(chan int),
 }

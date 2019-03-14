@@ -27,16 +27,18 @@ type routerConfigXML struct {
 type catRouterConfig struct {
 	scheduleMixin
 	sample  float64
-	routers []serverAddress
+	blocks  bool
+	routers serverAddresses
 	current *serverAddress
-	ticker *time.Ticker
+	ticker  *time.Ticker
 }
 
 var router = catRouterConfig{
 	scheduleMixin: makeScheduleMixedIn(signalRouterExit),
 	sample:        1.0,
+	blocks:        false,
 	routers:       make([]serverAddress, 0),
-	ticker: nil,
+	ticker:        nil,
 }
 
 func (c *catRouterConfig) GetName() string {
@@ -53,7 +55,7 @@ func (c *catRouterConfig) updateRouterConfig() {
 
 	u := url.URL{
 		Scheme:   "http",
-		Path:     "/cat/s/router",
+		Path:     routerPath,
 		RawQuery: query.Encode(),
 	}
 
@@ -61,13 +63,16 @@ func (c *catRouterConfig) updateRouterConfig() {
 		Timeout: 5 * time.Second,
 	}
 
+	tryTimes := 0
 	for _, server := range config.httpServerAddresses {
+		tryTimes++
+
 		u.Host = fmt.Sprintf("%s:%d", server.host, config.httpServerPort)
 		logger.Info("Getting router config from %s", u.String())
 
 		resp, err := client.Get(u.String())
 		if err != nil {
-			logger.Warning("Error occurred while getting router config from url %s", u.String())
+			logger.Warning("Error occurred while getting router config from remote server.", u.String())
 			continue
 		}
 
@@ -75,7 +80,7 @@ func (c *catRouterConfig) updateRouterConfig() {
 		return
 	}
 
-	logger.Error("Can't get router config from remote server.")
+	logger.Error("Failed to get router config from remote server. (after %d tries)", tryTimes)
 	return
 }
 
@@ -84,14 +89,14 @@ func (c *catRouterConfig) handle(signal int) {
 	case signalResetConnection:
 		logger.Warning("Connection has been reset, reconnecting.")
 		c.current = nil
-		c.updateRouterConfig()
+		c.makeConnection()
 	default:
 		c.scheduleMixin.handle(signal)
 	}
 }
 
 func (c *catRouterConfig) afterStart() {
-	c.ticker = time.NewTicker(time.Minute * 3)
+	c.ticker = time.NewTicker(routerInterval)
 	c.updateRouterConfig()
 }
 
@@ -112,16 +117,27 @@ func (c *catRouterConfig) updateSample(v string) {
 	sample, err := strconv.ParseFloat(v, 32)
 	if err != nil {
 		logger.Warning("Sample should be a valid float, %s given", v)
-	} else if math.Abs(sample - c.sample) > 1e-9 {
-		c.sample = sample
+	} else if math.Abs(sample-c.sample) > 1e-9 {
+		atomicStoreFloat64(&c.sample, sample)
 		logger.Info("Sample rate has been set to %f%%", c.sample*100)
 	}
 }
 
+func (c *catRouterConfig) enable() {
+	if c.blocks {
+		return
+	}
+	enable()
+}
+
 func (c *catRouterConfig) updateBlock(v string) {
 	if v == "false" {
-		enable()
-	} else  {
+		if c.blocks == true { // only toggle enable status while block status changed from true -> false.
+			c.blocks = false
+			c.enable()
+		}
+	} else {
+		c.blocks = true
 		disable()
 	}
 }
@@ -149,8 +165,31 @@ func (c *catRouterConfig) parse(reader io.ReadCloser) {
 	}
 }
 
+func (c *catRouterConfig) makeConnection() {
+	tryTimes := 0
+	for _, server := range c.routers {
+		tryTimes++
+		if compareServerAddress(c.current, &server) {
+			return
+		}
+
+		addr := fmt.Sprintf("%s:%d", server.host, server.port)
+		if conn, err := net.DialTimeout("tcp", addr, time.Second); err != nil {
+			logger.Info("Failed to connect to %s, retrying...", addr)
+		} else {
+			c.current = &server
+			logger.Info("Connected to %s.", addr)
+			sender.chConn <- conn
+			c.enable()
+			return
+		}
+	}
+	logger.Info("Cannot connect to cat server. (after %d tries)", tryTimes)
+}
+
 func (c *catRouterConfig) updateRouters(router string) {
 	newRouters := resolveServerAddresses(router)
+	config.httpServerAddresses = newRouters
 
 	oldLen, newLen := len(c.routers), len(newRouters)
 
@@ -165,28 +204,11 @@ func (c *catRouterConfig) updateRouters(router string) {
 	} else {
 		for i := 0; i < oldLen; i++ {
 			if !compareServerAddress(&c.routers[i], &newRouters[i]) {
-				logger.Info("Routers has been changed to: %s", newRouters)
+				logger.Info("Routers has been changed to: %s", newRouters.String())
 				c.routers = newRouters
 				break
 			}
 		}
 	}
-
-	for _, server := range newRouters {
-		if compareServerAddress(c.current, &server) {
-			return
-		}
-
-		addr := fmt.Sprintf("%s:%d", server.host, server.port)
-		if conn, err := net.DialTimeout("tcp", addr, time.Second); err != nil {
-			logger.Info("Failed to connect to %s, retrying...", addr)
-		} else {
-			c.current = &server
-			logger.Info("Connected to %s.", addr)
-			sender.chConn <- conn
-			return
-		}
-	}
-
-	logger.Info("Cannot established a connection to cat server.")
+	c.makeConnection()
 }

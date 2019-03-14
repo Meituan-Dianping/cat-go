@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-const (
-	CatSuccess = "0"
-	CatError   = "-1"
-)
-
 type Flush func(m Messager)
 
 //noinspection GoNameStartsWithPackageName
@@ -35,6 +30,8 @@ type Message struct {
 	Name   string
 	Status string
 
+	isCompleted uint32
+
 	timestamp time.Time
 
 	data *bytes.Buffer
@@ -44,12 +41,13 @@ type Message struct {
 
 func NewMessage(mtype, name string, flush Flush) Message {
 	return Message{
-		Type:      mtype,
-		Name:      name,
-		Status:    CatSuccess,
-		timestamp: time.Now(),
-		data:      new(bytes.Buffer),
-		flush:     flush,
+		Type:        mtype,
+		Name:        name,
+		Status:      CatSuccess,
+		isCompleted: 0,
+		timestamp:   time.Now(),
+		data:        new(bytes.Buffer),
+		flush:       flush,
 	}
 }
 
