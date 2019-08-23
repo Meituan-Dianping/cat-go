@@ -1,18 +1,24 @@
 package cat
 
 import (
+	"github.com/Meituan-Dianping/cat-go/message"
 	"os"
 	"sync/atomic"
 )
 
 var isEnabled uint32 = 0
 
-func Init(domain string) {
-	if err := config.Init(domain); err != nil {
+func Init(domain string, userConfig Config) {
+	if err := config.Init(domain, userConfig); err != nil {
 		logger.Warning("Cat initialize failed.")
 		return
 	}
 	enable()
+	if config.CatServerVersion == CatServerVersionV3 {
+		sender.encoder = message.NewBinaryEncoder()
+	} else {
+		sender.encoder = message.NewTxtEncoder()
+	}
 
 	go background(&router)
 	go background(&monitor)
