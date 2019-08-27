@@ -50,13 +50,14 @@ func (s *catMessageSender) send(m message.Messager) {
 		return
 	}
 
+	var b = make([]byte, 4)
+	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
+
 	if err := s.conn.SetWriteDeadline(time.Now().Add(time.Second * 3)); err != nil {
 		logger.Warning("Error occurred while setting write deadline, connection has been dropped.")
 		s.conn = nil
 		router.signals <- signalResetConnection
 	}
-	var b = make([]byte, 4)
-	binary.BigEndian.PutUint32(b, uint32(buf.Len()))
 
 	if _, err := s.conn.Write(b); err != nil {
 		logger.Warning("Error occurred while writing data, connection has been dropped.")
@@ -137,9 +138,7 @@ var sender = catMessageSender{
 	normal:        make(chan message.Messager, normalPriorityQueueSize),
 	high:          make(chan message.Messager, highPriorityQueueSize),
 	chConn:        make(chan net.Conn),
-	//encoder:       message.NewTxtEncoder(),
+	encoder:       message.NewBinaryEncoder(),
 	buf:           bytes.NewBuffer([]byte{}),
 	conn:          nil,
 }
-
-

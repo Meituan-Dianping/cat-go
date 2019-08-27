@@ -8,7 +8,6 @@ import (
 )
 
 type Config struct {
-	CatServerVersion string
 	domain   string
 	hostname string
 	env      string
@@ -20,8 +19,6 @@ type Config struct {
 
 	serverAddress []serverAddress
 }
-
-var config Config
 
 type XMLConfig struct {
 	Name    xml.Name         `xml:"config"`
@@ -35,6 +32,19 @@ type XMLConfigServers struct {
 type XMLConfigServer struct {
 	Host string `xml:"ip,attr"`
 	Port int    `xml:"port,attr"`
+}
+
+var config = Config{
+	domain:   defaultAppKey,
+	hostname: defaultHostname,
+	env:      defaultEnv,
+	ip:       defaultIp,
+	ipHex:    defaultIpHex,
+
+	httpServerPort:      8080,
+	httpServerAddresses: []serverAddress{},
+
+	serverAddress: []serverAddress{},
 }
 
 func loadConfigFromLocalFile(filename string) (data []byte, err error) {
@@ -82,55 +92,8 @@ func parseXMLConfig(data []byte) (err error) {
 	return
 }
 
-func DefaultConfig()(Config) {
-	var config = Config{
-		   domain:   defaultAppKey,
-		   hostname: defaultHostname,
-		   env:      defaultEnv,
-		   ip:       defaultIp,
-		   ipHex:    defaultIpHex,
-
-		   httpServerPort:      8080,
-		   httpServerAddresses: []serverAddress{},
-
-		   serverAddress: []serverAddress{},
-	}
-	return config
-}
-
-func (config *Config) Init(domain string, userConfig Config) (err error) {
+func (config *Config) Init(domain string) (err error) {
 	config.domain = domain
-
-	if len(userConfig.CatServerVersion) > 0 {
-		config.CatServerVersion = userConfig.CatServerVersion
-	} else {
-		config.CatServerVersion = defaultCatServerVersion
-	}
-
-	if len(userConfig.hostname) > 0 {
-		config.hostname = userConfig.hostname
-	} else {
-		config.hostname = defaultHostname
-	}
-
-	if len(userConfig.env) > 0 {
-		config.env = userConfig.env
-	} else {
-		config.env = defaultEnv
-	}
-
-	if userConfig.httpServerPort != 0 {
-		config.httpServerPort = userConfig.httpServerPort
-	} else {
-		config.httpServerPort = 8080
-	}
-	if len(userConfig.httpServerAddresses) > 0 {
-		config.httpServerAddresses = userConfig.httpServerAddresses
-	}
-
-	if len(userConfig.serverAddress) > 0 {
-		config.serverAddress = userConfig.serverAddress
-	}
 
 	defer func() {
 		if err == nil {

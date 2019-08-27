@@ -4,12 +4,6 @@ import (
 	"bytes"
 )
 
-const (
-	defaultThreadGroupName = ""
-	defaultThreadId        = "0"
-	defaultThreadName      = ""
-)
-
 type Encoder interface {
 	EncodeHeader(*bytes.Buffer, *Header) error
 	EncodeMessage(*bytes.Buffer, Messager) error
@@ -38,4 +32,43 @@ func encodeMessage(encoder Encoder, buf *bytes.Buffer, message Messager) (err er
 	}
 }
 
+func (e *encoderBase) EncodeHeader(buf *bytes.Buffer, header *Header) (err error) {
+	if _, err = buf.WriteString(BinaryProtocol); err != nil {
+		return
+	}
+	if err = writeString(buf, header.Domain); err != nil {
+		return
+	}
+	if err = writeString(buf, header.Hostname); err != nil {
+		return
+	}
+	if err = writeString(buf, header.Ip); err != nil {
+		return
+	}
 
+	if err = writeString(buf, defaultThreadGroupName); err != nil {
+		return
+	}
+	if err = writeString(buf, defaultThreadId); err != nil {
+		return
+	}
+	if err = writeString(buf, defaultThreadName); err != nil {
+		return
+	}
+
+	if err = writeString(buf, header.MessageId); err != nil {
+		return
+	}
+	if err = writeString(buf, header.ParentMessageId); err != nil {
+		return
+	}
+	if err = writeString(buf, header.RootMessageId); err != nil {
+		return
+	}
+
+	// sessionToken.
+	if err = writeString(buf, ""); err != nil {
+		return
+	}
+	return
+}

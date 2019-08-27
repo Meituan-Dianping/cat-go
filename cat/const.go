@@ -6,8 +6,6 @@ import (
 
 const (
 	GoCatVersion = "2.0.0"
-	CatServerVersionV2 = "V2"
-	CatServerVersionV3 = "V3"
 )
 
 const (
@@ -23,8 +21,6 @@ const ( // Declared default values.
 
 	defaultIp    = "127.0.0.1"
 	defaultIpHex = "7f000001"
-
-	defaultCatServerVersion = CatServerVersionV3
 
 	defaultXmlFile = "/data/appdatas/cat/client.xml"
 	defaultLogDir  = "/data/applogs/cat"

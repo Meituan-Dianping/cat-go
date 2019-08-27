@@ -131,26 +131,22 @@ func (c *catRouterConfig) parse(reader io.ReadCloser) {
 	if err != nil {
 		return
 	}
-	if config.CatServerVersion == CatServerVersionV3 {
-		t := new(routerConfigXML)
-		if err := xml.Unmarshal(bytes, &t); err != nil {
-			logger.Warning("Error occurred while parsing router config xml content.\n%s", string(bytes))
-		}
 
-		for _, property := range t.Properties {
-			switch property.Id {
-			case propertySample:
-				c.updateSample(property.Value)
-			case propertyRouters:
-				c.updateRouters(property.Value)
-			case propertyBlock:
-				c.updateBlock(property.Value)
-			}
-		}
-	} else {
-		c.updateRouters(string(bytes))
+	t := new(routerConfigXML)
+	if err := xml.Unmarshal(bytes, &t); err != nil {
+		logger.Warning("Error occurred while parsing router config xml content.\n%s", string(bytes))
 	}
 
+	for _, property := range t.Properties {
+		switch property.Id {
+		case propertySample:
+			c.updateSample(property.Value)
+		case propertyRouters:
+			c.updateRouters(property.Value)
+		case propertyBlock:
+			c.updateBlock(property.Value)
+		}
+	}
 }
 
 func (c *catRouterConfig) updateRouters(router string) {
