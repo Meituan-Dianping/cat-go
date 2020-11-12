@@ -13,6 +13,7 @@ type Config struct {
 	env      string
 	ip       string
 	ipHex    string
+	logDir   string
 
 	httpServerPort      int
 	httpServerAddresses []serverAddress
@@ -40,6 +41,7 @@ var config = Config{
 	env:      defaultEnv,
 	ip:       defaultIp,
 	ipHex:    defaultIpHex,
+	logDir:   defaultLogDir,
 
 	httpServerPort:      8080,
 	httpServerAddresses: []serverAddress{},
@@ -105,6 +107,24 @@ func (config *Config) Init(domain string) (err error) {
 
 	// TODO load env.
 
+	err = config.fixIpAndHostname()
+
+	var data []byte
+	if data, err = loadConfig(); err != nil {
+		return
+	}
+
+	// Print config content to log file.
+	logger.Info("\n%s", data)
+
+	if err = parseXMLConfig(data); err != nil {
+		return
+	}
+
+	return
+}
+
+func (config *Config) fixIpAndHostname() (err error) {
 	var ip net.IP
 	if ip, err = getLocalhostIp(); err != nil {
 		config.ip = defaultIp
@@ -122,18 +142,86 @@ func (config *Config) Init(domain string) (err error) {
 	} else {
 		logger.Info("Hostname has been configured to %s", config.hostname)
 	}
+	return err
+}
 
-	var data []byte
-	if data, err = loadConfig(); err != nil {
-		return
+func (config *Config) InitByConfig(cfg *Config) (err error) {
+	defer func() {
+		if err == nil {
+			logger.Info("Cat has been initialized successfully with appkey: %s", config.domain)
+		} else {
+			logger.Error("Failed to initialize cat.")
+		}
+	}()
+	err = cfg.fixIpAndHostname()
+	if cfg.domain != "" {
+		config.domain = cfg.domain
 	}
-
-	// Print config content to log file.
-	logger.Info("\n%s", data)
-
-	if err = parseXMLConfig(data); err != nil {
-		return
+	if cfg.env != "" {
+		config.env = cfg.env
 	}
-
+	if cfg.httpServerPort != 0 {
+		config.httpServerPort = cfg.httpServerPort
+	}
+	if cfg.httpServerAddresses != nil {
+		config.httpServerAddresses = cfg.httpServerAddresses
+	}
+	if cfg.serverAddress != nil {
+		config.serverAddress = cfg.serverAddress
+	}
+	if cfg.logDir != "" {
+		config.logDir = cfg.logDir
+	}
 	return
+}
+
+func (config *Config) SetDomain(domain string) *Config {
+	config.domain = domain
+	return config
+}
+
+func (config *Config) SetHostname(hostname string) *Config {
+	config.hostname = hostname
+	return config
+}
+
+func (config *Config) SetEnv(env string) *Config {
+	config.env = env
+	return config
+}
+
+func (config *Config) SetIp(ip string) *Config {
+	config.ip = ip
+	return config
+}
+
+func (config *Config) SetIpHex(ipHex string) *Config {
+	config.ipHex = ipHex
+	return config
+}
+
+func (config *Config) SetHttpServerPort(httpServerPort int) *Config {
+	config.httpServerPort = httpServerPort
+	return config
+}
+
+func (config *Config) addHttpServerAddress(host string, port int) *Config {
+	if config.httpServerAddresses == nil {
+		config.httpServerAddresses = make([]serverAddress, 0, 2)
+		config.httpServerAddresses = append(config.httpServerAddresses, serverAddress{host, port})
+	}
+	return config
+}
+
+func (config *Config) addServerAddress(host string, port int) *Config {
+	if config.serverAddress == nil {
+		config.serverAddress = make([]serverAddress, 0, 2)
+		config.serverAddress = append(config.serverAddress, serverAddress{host, port})
+	}
+	return config
+}
+
+func (config *Config) setLogDir(dir string) *Config {
+	config.logDir = dir
+	return config
 }

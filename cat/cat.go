@@ -12,6 +12,18 @@ func Init(domain string) {
 		logger.Warning("Cat initialize failed.")
 		return
 	}
+	start()
+}
+
+func InitByConfig(cfg *Config) {
+	if err := config.InitByConfig(cfg); err != nil {
+		logger.Warning("Cat initialize failed.")
+		return
+	}
+	start()
+}
+
+func start() {
 	enable()
 
 	go background(&router)

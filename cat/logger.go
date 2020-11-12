@@ -29,7 +29,7 @@ func createLogger() *Logger {
 
 func openLoggerFile(time time.Time) (*os.File, error) {
 	year, month, day := time.Date()
-	filename := fmt.Sprintf("%s/cat_%d_%02d_%02d.log", defaultLogDir, year, month, day)
+	filename := fmt.Sprintf("%s/cat_%d_%02d_%02d.log", config.logDir, year, month, day)
 	return os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 }
 

@@ -40,6 +40,22 @@ var wg = sync.WaitGroup{}
 func init() {
 	cat.DebugOn()
 	cat.Init("gocat.v2")
+    // or init by config
+    /*
+	cfg := &Config{}
+	cfg.SetDomain("gocat.v2").
+		SetHostname("www.test.com").
+		SetEnv("pro").
+		SetIp("127.0.0.1").
+		SetIpHex("xxx").
+		setLogDir("/data/log").
+		SetHttpServerPort(1024).
+		addHttpServerAddress("127.0.0.2", 1000).
+		addHttpServerAddress("127.0.0.3", 1001).
+		addServerAddress("127.0.0.4", 1004).
+		addServerAddress("127.0.0.5", 1005)
+	InitByConfig(cfg)
+    */
 }
 
 // send transaction
