@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Meituan-Dianping/cat-go/cat"
+	"github.com/andywu1998/cat-go/cat"
 )
 
 const TestType = "foo"

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Meituan-Dianping/cat-go/test"
+	"github.com/andywu1998/cat-go/test"
 )
 
 func Test_Router(t *testing.T) {
