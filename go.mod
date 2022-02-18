@@ -1,4 +1,4 @@
-module github.com/andywu1998/cat-go/v2
+module github.com/andywu1998/cat-go
 
 go 1.17
 
