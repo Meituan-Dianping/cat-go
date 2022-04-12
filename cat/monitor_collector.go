@@ -111,8 +111,7 @@ func (c *cpuInfoCollector) GetProperties() map[string]string {
 				currentTime.Softirq +
 				currentTime.Steal +
 				currentTime.Guest +
-				currentTime.GuestNice +
-				currentTime.Stolen
+				currentTime.GuestNice
 
 			if c.lastCPUTime > 0 {
 				cpuTime := currentCpuTime - c.lastCPUTime
